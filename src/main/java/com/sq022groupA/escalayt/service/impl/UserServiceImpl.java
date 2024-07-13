@@ -64,7 +64,6 @@ public class UserServiceImpl implements UserService {
 
         ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
         confirmationTokenRepository.save(confirmationToken);
-        System.out.println(confirmationToken.getToken());
 
 //        String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
 
