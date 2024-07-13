@@ -9,12 +9,15 @@ import com.sq022groupA.escalayt.entity.enums.Role;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
+import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.repository.UserRepository;
+import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.UserService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +36,10 @@ public class UserServiceImpl implements UserService {
 
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final EmailService emailService;
+
+    @Value("${baseUrl}")
+    private String baseUrl;
 
 
     @Override
@@ -59,14 +66,17 @@ public class UserServiceImpl implements UserService {
         confirmationTokenRepository.save(confirmationToken);
         System.out.println(confirmationToken.getToken());
 
-        //String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
+//        String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
 
-        //send email alert
-//        EmailDetails emailDetails = EmailDetails.builder()
-//                .recipient(savedUser.getEmail())
-//                .subject("ACCOUNT CREATION SUCCESSFUL")
-//                .build();
-//        emailService.sendSimpleMailMessage(emailDetails, savedUser.getFirstName(), savedUser.getLastName(), confirmationUrl);
+//        String confirmationUrl = baseUrl + "/confirmation/confirm-token-sucess.html?token=" + confirmationToken.getToken();
+        String confirmationUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + confirmationToken.getToken();
+
+//        send email alert
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(savedUser.getEmail())
+                .subject("ACCOUNT CREATION SUCCESSFUL")
+                .build();
+        emailService.sendSimpleMailMessage(emailDetails, savedUser.getFirstName(), savedUser.getLastName(), confirmationUrl);
         return "Confirmed Email";
 
     }

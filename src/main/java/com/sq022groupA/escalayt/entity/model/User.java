@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.sq022groupA.escalayt.auth.model.JwtToken;
 import com.sq022groupA.escalayt.entity.enums.Role;
 import jakarta.persistence.*;
 
@@ -46,6 +47,9 @@ public class User extends BaseClass implements UserDetails {
 
     @OneToMany(mappedBy = "resolvedBy")
     private List<Ticket> resolvedTickets;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<JwtToken> jtokens;
 
 
     @Override
