@@ -26,11 +26,15 @@ public class User extends BaseClass implements UserDetails {
 
     private String lastName;
 
+    private String username;
+
     private String email;
 
     private String password;
 
     private String phoneNumber;
+
+
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -71,5 +75,8 @@ public class User extends BaseClass implements UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
+
+
+
 
 }
