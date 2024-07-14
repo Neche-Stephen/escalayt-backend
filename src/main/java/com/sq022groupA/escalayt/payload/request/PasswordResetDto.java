@@ -1,15 +1,13 @@
-package com.sq022groupA.escalayt.payload.response;
+package com.sq022groupA.escalayt.payload.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class LoginInfo {
-    private String username;
+public class PasswordResetDto {
     private String token;
+    private String newPassword;
 }

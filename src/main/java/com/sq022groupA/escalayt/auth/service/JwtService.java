@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -54,6 +56,10 @@ public class JwtService {
     // method to generate token
 
     public String generateToken(Map<String, Object> extractClaims, UserDetails userDetails){
+        extractClaims.put("roles", userDetails.getAuthorities().stream()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .collect(Collectors.toList()));
+
         return Jwts
                 .builder()
                 .setClaims(extractClaims)
@@ -84,6 +90,12 @@ public class JwtService {
 
     private Date extractExpiration(String token){
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Extract roles from the token
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("roles", List.class);
     }
 
 }
