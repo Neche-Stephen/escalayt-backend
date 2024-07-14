@@ -10,5 +10,4 @@ public interface EmailService {
 
     void sendSimpleMailMessage(EmailDetails message, String firstName, String lastName, String link) throws MessagingException;
 
-    void sendPasswordResetEmail(String recipientEmail, String resetToken);
 }

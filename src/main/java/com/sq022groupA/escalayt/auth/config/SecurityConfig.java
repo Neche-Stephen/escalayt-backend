@@ -34,7 +34,7 @@ public class SecurityConfig {
                         requests -> requests
                                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
                                         antMatcher(HttpMethod.POST, "/api/v1/auth/password-reset/**"),
-                                        antMatcher(HttpMethod.GET, "/api/v1/auth/confirm")).permitAll()
+                                        antMatcher(HttpMethod.GET, "/api/v1/auth/**")).permitAll()
                                 .requestMatchers("/api/v1/ticket/**").hasAnyAuthority("USER", "ADMIN")
                                 .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER", "ADMIN")
                                 .anyRequest().authenticated()
