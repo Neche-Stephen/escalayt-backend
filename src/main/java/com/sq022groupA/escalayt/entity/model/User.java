@@ -46,12 +46,14 @@ public class User extends BaseClass implements UserDetails {
 
     private LocalDateTime tokenCreationDate;
 
-    // this is the update
+
     @OneToMany(mappedBy = "createdBy")
     private List<Ticket> createdTickets;
 
+
     @OneToMany(mappedBy = "resolvedBy")
     private List<Ticket> resolvedTickets;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -61,9 +63,9 @@ public class User extends BaseClass implements UserDetails {
     )
     private Set<Role> roles;
 
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<JwtToken> jtokens;
-
 
 
     @Override
@@ -82,6 +84,7 @@ public class User extends BaseClass implements UserDetails {
     public String getPassword() {
         return password;
     }
+
 
     @Override
     public boolean isEnabled() {
