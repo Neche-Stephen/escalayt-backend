@@ -2,12 +2,14 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.auth.model.ConfirmationToken;
 import com.sq022groupA.escalayt.auth.model.JwtToken;
+import com.sq022groupA.escalayt.auth.model.Role;
 import com.sq022groupA.escalayt.auth.repository.ConfirmationTokenRepository;
 import com.sq022groupA.escalayt.auth.repository.JwtTokenRepository;
+import com.sq022groupA.escalayt.auth.repository.RoleRepository;
 import com.sq022groupA.escalayt.auth.service.JwtService;
-import com.sq022groupA.escalayt.entity.enums.Role;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
+import com.sq022groupA.escalayt.payload.request.UserDetailsDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
 import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
@@ -23,13 +25,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final JwtTokenRepository jwtTokenRepository ;
     private final PasswordEncoder passwordEncoder;
     private final ConfirmationTokenRepository confirmationTokenRepository;
@@ -42,93 +49,43 @@ public class UserServiceImpl implements UserService {
     private String baseUrl;
 
 
-    @Override
-    public String registerUser(UserRequest registrationRequest) throws MessagingException {
+    public void initiatePasswordReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        Optional<User> existingUser = userRepository.findByEmail(registrationRequest.getEmail());
+        // Generate password reset token and send email
+        String resetToken = UUID.randomUUID().toString();
+        user.setResetToken(resetToken);
+        user.setTokenCreationDate(LocalDateTime.now());
+        userRepository.save(user);
 
-        if(existingUser.isPresent()){
-            throw new RuntimeException("Email already exists. Login to your account");
+        // Send email with reset token (pseudo-code)
+        emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token."));
+
+        if (user.getTokenCreationDate().isBefore(LocalDateTime.now().minusHours(1))) {
+            throw new RuntimeException("Token has expired.");
         }
 
-
-        User newUser = User.builder().firstName(registrationRequest.getFirstName())
-                .lastName(registrationRequest.getLastName())
-                .email(registrationRequest.getEmail())
-                .phoneNumber(registrationRequest.getPhoneNumber())
-                .password(passwordEncoder.encode(registrationRequest.getPassword()))
-                .role(Role.USER)
-                .build();
-
-        User savedUser = userRepository.save(newUser);
-
-        ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
-        confirmationTokenRepository.save(confirmationToken);
-        System.out.println(confirmationToken.getToken());
-
-//        String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
-
-//        String confirmationUrl = baseUrl + "/confirmation/confirm-token-sucess.html?token=" + confirmationToken.getToken();
-        String confirmationUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + confirmationToken.getToken();
-
-//        send email alert
-        EmailDetails emailDetails = EmailDetails.builder()
-                .recipient(savedUser.getEmail())
-                .subject("ACCOUNT CREATION SUCCESSFUL")
-                .build();
-        emailService.sendSimpleMailMessage(emailDetails, savedUser.getFirstName(), savedUser.getLastName(), confirmationUrl);
-        return "Confirmed Email";
-
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setTokenCreationDate(null);
+        userRepository.save(user);
     }
 
-    @Override
-    public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
-                        loginRequestDto.getPassword()
-                )
-        );
-        User user = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequestDto.getEmail()));
+    public void editUserDetails(Long id, UserDetailsDto userDetailsDto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        if (!user.isEnabled()) {
-            throw new RuntimeException("User account is not enabled. Please check your email to confirm your account.");
-        }
-
-        var jwtToken = jwtService.generateToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
-
-        return LoginResponse.builder()
-                .responseCode("002")
-                .responseMessage("Login Successfully")
-                .loginInfo(LoginInfo.builder()
-                        .email(user.getEmail())
-                        .token(jwtToken)
-                        .build())
-                .build();
+        user.setFirstName(userDetailsDto.getFirstName());
+        user.setLastName(userDetailsDto.getLastName());
+        user.setPhoneNumber(userDetailsDto.getPhoneNumber());
+        userRepository.save(user);
     }
 
-    private void saveUserToken(User userModel, String jwtToken) {
-        var token = JwtToken.builder()
-                .user(userModel)
-                .token(jwtToken)
-                .tokenType("BEARER")
-                .expired(false)
-                .revoked(false)
-                .build();
-        jwtTokenRepository.save(token);
-    }
 
-    private void revokeAllUserTokens(User userModel) {
-        var validUserTokens = jwtTokenRepository.findAllValidTokenByUser(userModel.getId());
-        if (validUserTokens.isEmpty())
-            return;
-        validUserTokens.forEach(token -> {
-            token.setExpired(true);
-            token.setRevoked(true);
-        });
-        jwtTokenRepository.saveAll(validUserTokens);
-    }
 }

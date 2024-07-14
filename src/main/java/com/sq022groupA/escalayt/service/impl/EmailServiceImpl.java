@@ -70,4 +70,14 @@ public class EmailServiceImpl implements EmailService {
         javaMailSender.send(msg);
         log.info("Sending email: to {}",message.getRecipient());
     }
+
+    public void sendPasswordResetEmail(String recipientEmail, String resetToken) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(recipientEmail);
+        message.setSubject("Password Reset Request");
+        message.setText("To reset your password, click the link below:\n\n"
+                + "http://localhost:8080/reset-password?token=" + resetToken);
+
+        javaMailSender.send(message);
+    }
 }

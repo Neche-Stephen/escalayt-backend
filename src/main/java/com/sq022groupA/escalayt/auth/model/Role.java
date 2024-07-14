@@ -1,33 +1,35 @@
 package com.sq022groupA.escalayt.auth.model;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.sq022groupA.escalayt.entity.model.User;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
-@Builder
-// removed the entity because it would throw error if i run it
-// without a repository interface.........
-// i live it for you  my boss.
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "role_tbl")
 public class Role {
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Long userId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String role;
+    @Column(unique = true, nullable = false)
+    private String name;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users;
 
+    public Role(String name) {
+        this.name = name;
+    }
 
 }
