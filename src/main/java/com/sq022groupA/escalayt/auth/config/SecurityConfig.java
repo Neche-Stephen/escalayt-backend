@@ -34,7 +34,11 @@ public class SecurityConfig {
                         requests -> requests
                                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
                                         antMatcher(HttpMethod.POST, "/api/v1/auth/password-reset/**"),
-                                        antMatcher(HttpMethod.GET, "/api/v1/auth/**")).permitAll()
+                                        antMatcher(HttpMethod.GET, "/api/v1/auth/**"),
+                                        antMatcher(HttpMethod.GET, "/swagger-ui.html"),
+                                        antMatcher(HttpMethod.GET, "/swagger-ui/**"),
+                                        antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
+                                        antMatcher(HttpMethod.GET, "/swagger-resources/**")).permitAll()
                                 .requestMatchers("/api/v1/ticket/**").hasAnyAuthority("USER", "ADMIN")
                                 .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER", "ADMIN")
                                 .anyRequest().authenticated()
