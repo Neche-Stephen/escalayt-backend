@@ -71,4 +71,22 @@ public class EmailServiceImpl implements EmailService {
         log.info("Sending email: to {}",message.getRecipient());
     }
 
+    @Override
+    public void mimeMailMessage(EmailDetails emailDetails) {
+        try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+
+            helper.setText(emailDetails.getMessageBody(), true); // Set true if the body is HTML, false for plain text
+            helper.setFrom(senderEmail);
+            helper.setTo(emailDetails.getRecipient());
+            helper.setSubject(emailDetails.getSubject());
+
+            javaMailSender.send(mimeMessage);
+
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

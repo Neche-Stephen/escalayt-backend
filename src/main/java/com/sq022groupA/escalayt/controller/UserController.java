@@ -1,10 +1,13 @@
 package com.sq022groupA.escalayt.controller;
 
+import com.sq022groupA.escalayt.payload.request.ForgetPasswordDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
 import com.sq022groupA.escalayt.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -24,4 +27,5 @@ public class UserController {
         // Return HTTP 200 OK response with the edited user details response.
         return ResponseEntity.ok(response);
     }
+
 }

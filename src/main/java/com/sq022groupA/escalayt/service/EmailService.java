@@ -10,4 +10,5 @@ public interface EmailService {
 
     void sendSimpleMailMessage(EmailDetails message, String firstName, String lastName, String link) throws MessagingException;
 
+    void mimeMailMessage(EmailDetails emailDetails);
 }

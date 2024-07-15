@@ -9,6 +9,7 @@ import com.sq022groupA.escalayt.auth.repository.RoleRepository;
 import com.sq022groupA.escalayt.auth.service.JwtService;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
+import com.sq022groupA.escalayt.payload.request.ForgetPasswordDto;
 import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
 import com.sq022groupA.escalayt.payload.request.PasswordResetDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
@@ -18,6 +19,7 @@ import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.repository.UserRepository;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.UserService;
+import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -180,5 +182,53 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return "User details updated successfully";
+    }
+
+    @Override
+    public String forgotPassword(ForgetPasswordDto forgetPasswordDto) {
+
+
+        /*
+        steps
+        1- check if email exist (settled)
+        2- create a random token (done)
+        3- Hash the token and add it to the db under the user (done)
+        4- set expiration time for the token in the db (done)
+        5- generate a reset url using the token (done)
+        6- send email with reset url link
+         */
+
+        Optional<User> checkUser = userRepository.findByEmail(forgetPasswordDto.getEmail());
+
+        // check if user exist with that email
+        if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
+
+        User forgettingUser = checkUser.get();
+
+        // generate a hashed token
+        ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);
+
+        // saved the token.
+        // the token has an expiration date
+        confirmationTokenRepository.save(forgetPassWordToken);
+        // System.out.println("the token "+forgetPassWordToken.getToken());
+
+        // generate a password reset url
+        String resetPasswordUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + forgetPassWordToken.getToken();
+
+
+
+        // click this link to reset password;
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(forgettingUser.getEmail())
+                .subject("FORGET PASSWORD")
+                .messageBody(ForgetPasswordEmailBody.buildEmail(forgettingUser.getFirstName(),
+                        forgettingUser.getLastName(), resetPasswordUrl))
+                .build();
+
+        //send the reset password link
+        emailService.mimeMailMessage(emailDetails);
+
+        return "A reset password link has been sent to your account." + resetPasswordUrl;
     }
 }

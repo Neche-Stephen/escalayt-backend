@@ -69,6 +69,14 @@ public class AuthController {
 
     }
 
+    // forget password endpoint
+    @PostMapping("/forget_password")
+    public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto){
+
+        String result = userService.forgotPassword(forgetPasswordDto);
+
+        return ResponseEntity.ok(Collections.singletonMap("message", result));
+    }
 
 
     @PostMapping("/new-password-reset")
