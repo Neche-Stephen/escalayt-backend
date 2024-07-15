@@ -165,9 +165,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String editUserDetails(Long userId, UserRequest userRequest) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+    public String editUserDetails(String username, UserRequest userRequest) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         //Update user details
         user.setFirstName(userRequest.getFirstName());
