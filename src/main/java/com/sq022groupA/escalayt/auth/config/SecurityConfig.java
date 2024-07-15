@@ -33,10 +33,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         requests -> requests
                                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
-                                        antMatcher(HttpMethod.GET, "/api/v1/auth/confirm"))
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated()
+                                        antMatcher(HttpMethod.POST, "/api/v1/auth/password-reset/**"),
+                                        antMatcher(HttpMethod.GET, "/api/v1/auth/**"),
+                                        antMatcher(HttpMethod.GET, "/swagger-ui.html"),
+                                        antMatcher(HttpMethod.GET, "/swagger-ui/**"),
+                                        antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
+                                        antMatcher(HttpMethod.GET, "/swagger-resources/**")).permitAll()
+                                .requestMatchers("/api/v1/ticket/**").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER", "ADMIN")
+                                .anyRequest().authenticated()
 
                 )
                 .exceptionHandling(exception -> exception

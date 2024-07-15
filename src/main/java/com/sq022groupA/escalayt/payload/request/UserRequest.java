@@ -15,6 +15,9 @@ public class UserRequest {
     @NotBlank(message = "Last name is required")
     private String lastName;
 
+    @NotBlank(message = "user name is required")
+    private String userName;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
