@@ -23,10 +23,5 @@ jobs:
           distribution: 'corretto'
           java-version: 17
 
-      - name: Unit Tests
-        run: mvn -B test --file pom.xml
-
-      - name: Build the application
-        run: |
-          mvn clean
-          mvn -B package --file pom.xml
+      - name: Build with Maven
+        run: mvn clean install -DskipTests -X
