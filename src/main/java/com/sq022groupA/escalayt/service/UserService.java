@@ -10,5 +10,7 @@ import jakarta.mail.MessagingException;
 public interface UserService {
 
     String registerUser(UserRequest registrationRequest) throws MessagingException;
+    LoginResponse loginUser(LoginRequestDto loginRequestDto);
+    void resetPassword(PasswordResetDto passwordResetDto);
 
 }

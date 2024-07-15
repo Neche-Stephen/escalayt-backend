@@ -2,12 +2,14 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.auth.model.ConfirmationToken;
 import com.sq022groupA.escalayt.auth.model.JwtToken;
+import com.sq022groupA.escalayt.auth.model.Role;
 import com.sq022groupA.escalayt.auth.repository.ConfirmationTokenRepository;
 import com.sq022groupA.escalayt.auth.repository.JwtTokenRepository;
+import com.sq022groupA.escalayt.auth.repository.RoleRepository;
 import com.sq022groupA.escalayt.auth.service.JwtService;
-import com.sq022groupA.escalayt.entity.enums.Role;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
+import com.sq022groupA.escalayt.payload.request.PasswordResetDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
 import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
@@ -20,10 +22,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +36,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final JwtTokenRepository jwtTokenRepository ;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConfirmationTokenRepository confirmationTokenRepository;
 
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+
 
     @Value("${baseUrl}")
     private String baseUrl;
@@ -45,25 +52,38 @@ public class UserServiceImpl implements UserService {
     @Override
     public String registerUser(UserRequest registrationRequest) throws MessagingException {
 
-        Optional<User> existingUser = userRepository.findByEmail(registrationRequest.getEmail());
+        //Optional<User> existingUser = userRepository.findByEmail(registrationRequest.getEmail());
+        Optional<User> existingUser = userRepository.findByUsername(registrationRequest.getUserName());
+
 
         if(existingUser.isPresent()){
             throw new RuntimeException("Email already exists. Login to your account");
         }
 
+        Optional<Role> userRole = roleRepository.findByName("USER");
+        if (userRole.isEmpty()) {
+            throw new RuntimeException("Default role USER not found in the database.");
+        }
 
-        User newUser = User.builder().firstName(registrationRequest.getFirstName())
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole.get());
+
+
+        User newUser = User.builder()
+                .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
+                .username(registrationRequest.getUserName())
                 .email(registrationRequest.getEmail())
                 .phoneNumber(registrationRequest.getPhoneNumber())
                 .password(passwordEncoder.encode(registrationRequest.getPassword()))
-                .role(Role.USER)
+                .roles(roles)
                 .build();
 
         User savedUser = userRepository.save(newUser);
 
         ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
         confirmationTokenRepository.save(confirmationToken);
+        System.out.println(confirmationToken.getToken());
 
 //        String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
 
@@ -84,12 +104,12 @@ public class UserServiceImpl implements UserService {
     public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
+                        loginRequestDto.getUsername(),
                         loginRequestDto.getPassword()
                 )
         );
-        User user = userRepository.findByEmail(loginRequestDto.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequestDto.getEmail()));
+        User user = userRepository.findByUsername(loginRequestDto.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + loginRequestDto.getUsername()));
 
         if (!user.isEnabled()) {
             throw new RuntimeException("User account is not enabled. Please check your email to confirm your account.");
@@ -103,7 +123,7 @@ public class UserServiceImpl implements UserService {
                 .responseCode("002")
                 .responseMessage("Login Successfully")
                 .loginInfo(LoginInfo.builder()
-                        .email(user.getEmail())
+                        .username(user.getUsername())
                         .token(jwtToken)
                         .build())
                 .build();
@@ -129,5 +149,17 @@ public class UserServiceImpl implements UserService {
             token.setRevoked(true);
         });
         jwtTokenRepository.saveAll(validUserTokens);
+    }
+
+    public void resetPassword(PasswordResetDto passwordResetDto) {
+        User user = userRepository.findByEmail(passwordResetDto.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + passwordResetDto.getEmail()));
+
+        if(user.getResetToken() != null){
+            return;
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
+        userRepository.save(user);
     }
 }

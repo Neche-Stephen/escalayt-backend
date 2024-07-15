@@ -21,5 +21,60 @@ public class UserController {
 
     private final TokenValidationService tokenValidationService;
 
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequest registrationRequest) {
+
+        try{
+
+            String registerUser  = userService.registerUser(registrationRequest);
+
+            if(!registerUser.equals("Invalid Email domain")){
+
+                return ResponseEntity.ok("User registered successfully. Please check your email to confirm your account");
+
+            }else {
+
+                return ResponseEntity.badRequest().body("Invalid Email!!!");
+
+            }
+
+        } catch (IllegalArgumentException exception){
+
+            return ResponseEntity.badRequest().body(exception.getMessage());
+
+        } catch (MessagingException e) {
+
+            throw new RuntimeException(e);
+
+        }
+
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequestDto loginRequestDto){
+
+        return ResponseEntity.ok(userService.loginUser(loginRequestDto));
+
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<?> confirmEmail(@RequestParam("token") String token){
+
+        String result = tokenValidationService.validateToken(token);
+        if ("Email confirmed successfully".equals(result)) {
+            return ResponseEntity.ok(Collections.singletonMap("message", result));
+        } else {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("message", result));
+        }
+
+    }
+
+
+
+    @PostMapping("/new-password-reset")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetDto request) {
+        userService.resetPassword(request);
+        return ResponseEntity.ok("Password reset successfully.");
+    }
 
 }
