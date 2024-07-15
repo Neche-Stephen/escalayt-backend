@@ -8,6 +8,7 @@ import com.sq022groupA.escalayt.auth.repository.JwtTokenRepository;
 import com.sq022groupA.escalayt.auth.repository.RoleRepository;
 import com.sq022groupA.escalayt.auth.service.JwtService;
 import com.sq022groupA.escalayt.entity.model.User;
+import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
 import com.sq022groupA.escalayt.payload.request.PasswordResetDto;
 import com.sq022groupA.escalayt.payload.request.UserRequest;
@@ -161,5 +162,23 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public String editUserDetails(Long userId, UserRequest userRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        //Update user details
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setEmail(userRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        user.setPhoneNumber(userRequest.getPhoneNumber());
+
+        //save the updated user
+        userRepository.save(user);
+
+        return "User details updated successfully";
     }
 }
