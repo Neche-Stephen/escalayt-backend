@@ -10,12 +10,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SpringDocConfig {
+//This method creates and returns an OpenAPI configuration object
     @Bean
     public OpenAPI createOpenAPIConfig(){
+       //This creates an OpenAPI object
        return new OpenAPI()
+               //This sets general information about the API
                .info(new Info().title("Escalayt Facility Management API")
                        .version("1.0")
                        .description("API documentation for Escalayt Facility Management Platform"))
+               //This adds a security schemes component
                .components(new Components()
                        .addSecuritySchemes("bearer-jwt", new SecurityScheme()
                                .type(SecurityScheme.Type.HTTP)
@@ -25,6 +29,7 @@ public class SpringDocConfig {
                                .name("Authorization")
                        )
                )
+                //Add security requirement to use JWT bearer token for all endpoints
                .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"));
     }
 }
