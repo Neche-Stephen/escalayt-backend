@@ -8,13 +8,15 @@
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/auth/model/Role.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/auth/repository/ConfirmationTokenRepository.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/auth/repository/JwtTokenRepository.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/auth/repository/RoleRepository.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/auth/service/JwtService.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/config/SpringDocConfig.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/config/ThymeLeafConfig.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/controller/AuthController.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/controller/TicketController.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/controller/UserController.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/enums/Category.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/enums/Priority.java
-/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/enums/Role.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/enums/Status.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/model/BaseClass.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/entity/model/Ticket.java
@@ -22,7 +24,12 @@
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/exception/ErrorResponse.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/exception/ExpiredJwtTokenException.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/exception/GlobalExceptionHandler.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/exception/UserNotFoundException.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/ForgetPasswordDto.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/LoginRequestDto.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/PasswordResetDto.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/PasswordResetRequestDto.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/UserDetailsDto.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/request/UserRequest.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/response/EmailDetails.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/payload/response/LoginInfo.java
@@ -39,3 +46,5 @@
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/service/impl/TickerServiceImpl.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/service/impl/TokenValidationServiceImpl.java
 /Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/service/impl/UserServiceImpl.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/utils/DataLoader.java
+/Users/macbookair/Desktop/FIRI/DECAGON/ASSIGNMENTS/ESCALAYT_Team_One/src/main/java/com/sq022groupA/escalayt/utils/ForgetPasswordEmailBody.java

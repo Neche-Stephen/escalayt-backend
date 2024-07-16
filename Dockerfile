@@ -1,5 +1,5 @@
-# Use an official Amazon Corretto 17 runtime as a parent image
-FROM amazoncorretto:17
+# Use a specific base image with Java runtime
+FROM openjdk:17-jdk-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -11,4 +11,4 @@ COPY target/*.jar escalayt-application.jar
 EXPOSE 8080
 
 # Set the entry point to run the application
-ENTRYPOINT ["java", "-Xmx2048M", "-jar", "escalayt-application.jar"]
+ENTRYPOINT ["java", "-jar", "escalayt-application.jar"]
