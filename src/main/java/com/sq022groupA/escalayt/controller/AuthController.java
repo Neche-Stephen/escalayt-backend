@@ -77,7 +77,8 @@ public class AuthController {
 
         return ResponseEntity.ok(Collections.singletonMap("message", result));
     }
-
+    
+    // new password reset
     @PostMapping("/new-password-reset")
     public ResponseEntity<String> newResetPassword(@RequestBody PasswordResetDto request){
         userService.resetPassword(request);
