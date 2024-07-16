@@ -25,10 +25,42 @@ The following guides illustrate how to use some features concretely:
 * [Authenticating a User with LDAP](https://spring.io/guides/gs/authenticating-ldap/)
 * [Validation](https://spring.io/guides/gs/validating-form-input/)
 
-### Maven Parent overrides
+### Maven Parent Overrides
+Due to Maven's design, elements are inherited from the parent POM to the project POM. While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the parent. To prevent this, the project POM contains empty overrides for these elements. If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
 
-Due to Maven's design, elements are inherited from the parent POM to the project POM.
-While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the parent.
-To prevent this, the project POM contains empty overrides for these elements.
-If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
+### Getting Started
 
+#### Prerequisites
+- Java Development Kit (JDK) 17 or higher
+- Apache Maven 3.8.1 or higher
+- Docker and Docker Compose
+
+### Building the Project
+To build the project, run the following command:
+```bash
+mvn clean install
+
+### Running the Project Locally
+To run the project locally without Docker, use the following command:
+```bash
+mvn spring-boot:run
+
+
+
+Running the Project with Docker Compose
+To run the project using Docker Compose, follow these steps:
+
+#### Build the Docker Image
+
+```bash
+docker-compose build
+
+
+```bash
+docker-compose up
+This command will start all the services defined in the docker-compose.yml file.
+
+
+#### Kill the Docker Image
+```bash
+docker-compose down
