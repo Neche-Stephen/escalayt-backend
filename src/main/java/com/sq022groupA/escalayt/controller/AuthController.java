@@ -77,12 +77,12 @@ public class AuthController {
 
         return ResponseEntity.ok(Collections.singletonMap("message", result));
     }
-
-
+    
+    // new password reset
     @PostMapping("/new-password-reset")
-    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetDto request) {
+    public ResponseEntity<String> newResetPassword(@RequestBody PasswordResetDto request){
         userService.resetPassword(request);
-        return ResponseEntity.ok("Password reset successfully.");
+        return ResponseEntity.ok("Password reset successfully. ");
     }
 
 }

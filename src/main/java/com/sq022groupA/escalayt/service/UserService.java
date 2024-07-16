@@ -9,7 +9,8 @@ public interface UserService {
     String registerUser(UserRequest registrationRequest) throws MessagingException;
     LoginResponse loginUser(LoginRequestDto loginRequestDto);
     void resetPassword(PasswordResetDto passwordResetDto);
-    String editUserDetails(Long userId, UserRequest userRequest);
+    void newResetPassword(PasswordResetDto passwordResetDto);
+    String editUserDetails(String username, UserDetailsDto userDetailsDto);
 
 
     String forgotPassword (ForgetPasswordDto forgetPasswordDto);
