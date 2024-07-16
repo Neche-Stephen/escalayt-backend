@@ -30,4 +30,17 @@ public class GlobalExceptionHandler {
         // and the exception message as the response body.
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @ExceptionHandler(PasswordsDoNotMatchException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordsDoNotMatchException(PasswordsDoNotMatchException exception, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Passwords Do Not Match")
+                .message(exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 }
