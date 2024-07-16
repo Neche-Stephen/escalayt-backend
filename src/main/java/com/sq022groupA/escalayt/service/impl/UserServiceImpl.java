@@ -167,6 +167,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void newResetPassword(PasswordResetDto passwordResetDto) {
+        User user = userRepository.findByEmail(passwordResetDto.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + passwordResetDto.getEmail()));
+
+        if(user.getResetToken() != null){
+            return;
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
     public String editUserDetails(String username, UserRequest userRequest) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
