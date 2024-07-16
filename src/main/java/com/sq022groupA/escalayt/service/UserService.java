@@ -10,7 +10,7 @@ public interface UserService {
     LoginResponse loginUser(LoginRequestDto loginRequestDto);
     void resetPassword(PasswordResetDto passwordResetDto);
     void newResetPassword(PasswordResetDto passwordResetDto);
-    String editUserDetails(String username, UserRequest userRequest);
+    String editUserDetails(String username, UserDetailsDto userDetailsDto);
 
 
     String forgotPassword (ForgetPasswordDto forgetPasswordDto);

@@ -8,11 +8,9 @@ import com.sq022groupA.escalayt.auth.repository.JwtTokenRepository;
 import com.sq022groupA.escalayt.auth.repository.RoleRepository;
 import com.sq022groupA.escalayt.auth.service.JwtService;
 import com.sq022groupA.escalayt.entity.model.User;
+import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
-import com.sq022groupA.escalayt.payload.request.ForgetPasswordDto;
-import com.sq022groupA.escalayt.payload.request.LoginRequestDto;
-import com.sq022groupA.escalayt.payload.request.PasswordResetDto;
-import com.sq022groupA.escalayt.payload.request.UserRequest;
+import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
@@ -155,6 +153,11 @@ public class UserServiceImpl implements UserService {
     }
 
     public void resetPassword(PasswordResetDto passwordResetDto) {
+
+        if (!passwordResetDto.getNewPassword().equals(passwordResetDto.getConfirmPassword())) {
+            throw new PasswordsDoNotMatchException("New password and confirm password do not match.");
+        }
+
         User user = userRepository.findByEmail(passwordResetDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + passwordResetDto.getEmail()));
 
@@ -180,16 +183,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String editUserDetails(String username, UserRequest userRequest) {
+    public String editUserDetails(String username, UserDetailsDto userDetailsDto) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         //Update user details
-        user.setFirstName(userRequest.getFirstName());
-        user.setLastName(userRequest.getLastName());
-        user.setEmail(userRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setFirstName(userDetailsDto.getFirstName());
+        user.setLastName(userDetailsDto.getLastName());
+        user.setEmail(userDetailsDto.getEmail());
+        user.setPhoneNumber(userDetailsDto.getPhoneNumber());
 
         //save the updated user
         userRepository.save(user);
