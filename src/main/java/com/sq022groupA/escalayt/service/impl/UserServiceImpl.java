@@ -10,6 +10,7 @@ import com.sq022groupA.escalayt.auth.service.JwtService;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
+import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public String registerUser(UserRequest registrationRequest) throws MessagingException {
+    public String register(UserRequest registrationRequest) throws MessagingException {
 
         //Optional<User> existingUser = userRepository.findByEmail(registrationRequest.getEmail());
         Optional<User> existingUser = userRepository.findByUsername(registrationRequest.getUserName());
@@ -59,6 +60,12 @@ public class UserServiceImpl implements UserService {
 
         if(existingUser.isPresent()){
             throw new RuntimeException("Email already exists. Login to your account");
+        }
+
+        // check if username already exists
+        Optional<User> existingUserByUsername = userRepository.findByUsername(registrationRequest.getUserName());
+        if (existingUserByUsername.isPresent()) {
+            throw new UsernameAlreadyExistsException("Username already exists. Please choose another username.");
         }
 
         Optional<Role> userRole = roleRepository.findByName("USER");

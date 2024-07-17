@@ -22,11 +22,11 @@ public class AuthController {
     private final TokenValidationService tokenValidationService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequest registrationRequest) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRequest registrationRequest) {
 
         try{
 
-            String registerUser  = userService.registerUser(registrationRequest);
+            String registerUser  = userService.register(registrationRequest);
 
             if(!registerUser.equals("Invalid Email domain")){
 
