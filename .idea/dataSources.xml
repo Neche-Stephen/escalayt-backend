@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-<<<<<<< Updated upstream
-    <data-source source="LOCAL" name="Escalayt@localhost" uuid="c1db5fe4-6b21-4d5c-9c2b-649f64dfe347">
+    <data-source source="LOCAL" name="Escalayt@localhost" uuid="5df1d6ca-23b7-41af-84a1-a99582ac616d">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
-=======
-    <data-source source="LOCAL" name="Escalayt@localhost" uuid="2dbc4a41-4c5a-446e-a533-3bc0a8993725">
-      <driver-ref>postgresql</driver-ref>
-      <synchronize>true</synchronize>
-      <imported>true</imported>
-      <remarks>$PROJECT_DIR$/src/main/resources/application.properties</remarks>
->>>>>>> Stashed changes
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/Escalayt</jdbc-url>
       <jdbc-additional-properties>

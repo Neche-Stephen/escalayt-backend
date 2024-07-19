@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="dataSourceStorageLocal" created-in="IU-241.17011.79">
-<<<<<<< Updated upstream
-    <data-source name="Escalayt@localhost" uuid="c1db5fe4-6b21-4d5c-9c2b-649f64dfe347">
+  <component name="dataSourceStorageLocal" created-in="IU-241.14494.240">
+    <data-source name="Escalayt@localhost" uuid="5df1d6ca-23b7-41af-84a1-a99582ac616d">
       <database-info product="PostgreSQL" version="16.3" jdbc-version="4.2" driver-name="PostgreSQL JDBC Driver" driver-version="42.6.0" dbms="POSTGRES" exact-version="16.3" exact-driver-version="42.6">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
@@ -12,16 +11,10 @@
       <schema-mapping>
         <introspection-scope>
           <node kind="database" qname="Escalayt">
-            <node kind="schema" qname="public" />
+            <node kind="schema" negative="1" />
           </node>
         </introspection-scope>
       </schema-mapping>
-=======
-    <data-source name="Escalayt@localhost" uuid="2dbc4a41-4c5a-446e-a533-3bc0a8993725">
-      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="POSTGRES" />
-      <user-name>${USER_NAME}</user-name>
-      <schema-mapping />
->>>>>>> Stashed changes
     </data-source>
   </component>
 </project>
