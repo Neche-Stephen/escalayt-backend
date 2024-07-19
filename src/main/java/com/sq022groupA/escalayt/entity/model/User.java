@@ -1,7 +1,5 @@
 package com.sq022groupA.escalayt.entity.model;
 
-import com.sq022groupA.escalayt.auth.model.JwtToken;
-import com.sq022groupA.escalayt.auth.model.Role;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -11,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
