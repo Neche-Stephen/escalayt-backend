@@ -29,13 +29,17 @@ public class User extends BaseClass implements UserDetails {
 
     private String username;
 
+    private String userImg;
+
     private String email;
 
     private String password;
 
     private String phoneNumber;
 
-    private boolean enabled;
+    private String role;
+
+    private String department;
 
     private boolean isActive = true; // Flag for soft delete
 
@@ -80,12 +84,6 @@ public class User extends BaseClass implements UserDetails {
     @Override
     public String getPassword() {
         return password;
-    }
-
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
     }
 
 }

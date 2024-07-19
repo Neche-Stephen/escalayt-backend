@@ -24,7 +24,7 @@ public abstract class BaseClass {
 
     private LocalDateTime updatedAt;
 
-    private Long createdUnder;
+    private Long createdUnder; // Id of the Admin
 
     public BaseClass() {
         this.createdAt = LocalDateTime.now();
