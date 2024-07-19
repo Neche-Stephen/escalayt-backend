@@ -24,6 +24,8 @@ public abstract class BaseClass {
 
     private LocalDateTime updatedAt;
 
+    private Long createdUnder;
+
     public BaseClass() {
         this.createdAt = LocalDateTime.now();
     }
