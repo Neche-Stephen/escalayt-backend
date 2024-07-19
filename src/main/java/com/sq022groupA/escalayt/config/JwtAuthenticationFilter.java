@@ -1,8 +1,8 @@
-package com.sq022groupA.escalayt.auth.config;
+package com.sq022groupA.escalayt.config;
 
-import com.sq022groupA.escalayt.auth.repository.JwtTokenRepository;
-import com.sq022groupA.escalayt.auth.service.JwtService;
+import com.sq022groupA.escalayt.repository.JwtTokenRepository;
 import com.sq022groupA.escalayt.exception.ExpiredJwtTokenException;
+import com.sq022groupA.escalayt.service.impl.UserServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
-    private final JwtService jwtService;
+    private final UserServiceImpl.JwtService jwtService;
 
     private final UserDetailsService userDetailsService;
 

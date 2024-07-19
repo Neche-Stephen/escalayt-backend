@@ -1,7 +1,5 @@
-package com.sq022groupA.escalayt.auth.model;
+package com.sq022groupA.escalayt.entity.model;
 
-import com.sq022groupA.escalayt.entity.model.BaseClass;
-import com.sq022groupA.escalayt.entity.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 

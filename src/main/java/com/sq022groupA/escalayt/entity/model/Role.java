@@ -1,13 +1,9 @@
-package com.sq022groupA.escalayt.auth.model;
+package com.sq022groupA.escalayt.entity.model;
 
 
-import com.sq022groupA.escalayt.entity.model.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Getter

@@ -1,6 +1,6 @@
-package com.sq022groupA.escalayt.auth.repository;
+package com.sq022groupA.escalayt.repository;
 
-import com.sq022groupA.escalayt.auth.model.JwtToken;
+import com.sq022groupA.escalayt.entity.model.JwtToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

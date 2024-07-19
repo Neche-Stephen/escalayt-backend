@@ -1,4 +1,4 @@
-package com.sq022groupA.escalayt.auth.config;
+package com.sq022groupA.escalayt.config;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

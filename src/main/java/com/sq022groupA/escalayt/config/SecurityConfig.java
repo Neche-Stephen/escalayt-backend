@@ -1,4 +1,4 @@
-package com.sq022groupA.escalayt.auth.config;
+package com.sq022groupA.escalayt.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

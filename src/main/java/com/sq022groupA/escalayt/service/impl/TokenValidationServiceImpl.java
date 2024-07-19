@@ -1,7 +1,7 @@
 package com.sq022groupA.escalayt.service.impl;
 
-import com.sq022groupA.escalayt.auth.model.ConfirmationToken;
-import com.sq022groupA.escalayt.auth.repository.ConfirmationTokenRepository;
+import com.sq022groupA.escalayt.entity.model.ConfirmationToken;
+import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.repository.UserRepository;
 import com.sq022groupA.escalayt.service.TokenValidationService;
