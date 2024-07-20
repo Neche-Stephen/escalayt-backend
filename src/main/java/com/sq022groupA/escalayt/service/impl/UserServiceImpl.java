@@ -1,37 +1,20 @@
 package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.entity.model.*;
-import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
+import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
-import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
-import com.sq022groupA.escalayt.exception.UserNotFoundException;
-import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
-import com.sq022groupA.escalayt.payload.response.EmailDetails;
-import com.sq022groupA.escalayt.payload.response.LoginInfo;
-import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.UserService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import com.sq022groupA.escalayt.utils.UserRegistrationEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +28,7 @@ public class UserServiceImpl implements UserService {
     private String baseUrl;
 
 
+    // USER/EMPLOYEE REGISTRATION
     @Override
     public UserRegistrationResponse registerUser(UserRegistrationDto userRegistrationDto) throws MessagingException {
 
@@ -62,23 +46,40 @@ public class UserServiceImpl implements UserService {
                 .department(userRegistrationDto.getDepartment())
                 .username(userRegistrationDto.getUsername())
                 .password(passwordEncoder.encode(userRegistrationDto.getPassword()))
+                .createdUnder(userRegistrationDto.getCreatedUnder())
                 .build();
 
         User savedUser = userRepository.save(newUser);
 
-//        send email alert
+        // SET UP EMAIL MESSAGE FOR REGISTERED USER/EMPLOYEE
+        String userLoginUrl = baseUrl + "/user-login";
+
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(savedUser.getEmail())
                 .subject("ACTIVATE YOUR ACCOUNT")
-                .messageBody(ForgetPasswordEmailBody.buildEmail(savedUser.getFullName(),
-                        savedUser.getUsername(), userRegistrationDto.getPassword()))
+                .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
+                        savedUser.getUsername(), userRegistrationDto.getPassword(), userLoginUrl))
                 .build();
 
-        //send the reset password link
+        // SEND EMAIL MESSAGE TO REGISTERED USER/EMPLOYEE
         emailService.mimeMailMessage(emailDetails);
 
-        return "A reset password link has been sent to your account." + resetPasswordUrl;
+        // METHOD RESPONSE
+        return UserRegistrationResponse.builder()
+                .responseTemplate(ResponseTemplate.builder()
+                        .responseCode("007")
+                        .responseMessage("User/Employee Created Successfully")
+                        .build())
+                .fullName(savedUser.getFullName())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .phoneNumber(savedUser.getPhoneNumber())
+                .jobTitle(savedUser.getJobTitle())
+                .department(savedUser.getDepartment())
+                .createdUnder(savedUser.getCreatedUnder())
+                .build();
 
     }
+
 
 }

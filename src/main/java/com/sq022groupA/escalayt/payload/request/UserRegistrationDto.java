@@ -33,6 +33,8 @@ public class UserRegistrationDto {
     @NotBlank(message = "Password did not generate")
     private String password;
 
+    private long createdUnder;
+
     public UserRegistrationDto(String fullName, String email, String phoneNumber, String jobTitle, String department) {
         this.fullName = fullName;
         this.email = email;

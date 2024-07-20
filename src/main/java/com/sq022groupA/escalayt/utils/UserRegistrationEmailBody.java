@@ -2,7 +2,7 @@ package com.sq022groupA.escalayt.utils;
 
 public class UserRegistrationEmailBody {
 
-    public static String buildEmail(String fullName, String username, String password) {
+    public static String buildEmail(String fullName, String username, String password, String link) {
 
         return "<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
