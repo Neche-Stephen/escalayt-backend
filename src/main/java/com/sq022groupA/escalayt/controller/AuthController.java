@@ -4,6 +4,7 @@ import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.TokenValidationService;
 import com.sq022groupA.escalayt.service.AdminService;
+import com.sq022groupA.escalayt.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class AuthController {
     private final AdminService adminService;
 
     private final TokenValidationService tokenValidationService;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody AdminRequest registrationRequest) {
@@ -83,6 +85,13 @@ public class AuthController {
     public ResponseEntity<String> newResetPassword(@RequestBody PasswordResetDto request){
         adminService.resetPassword(request);
         return ResponseEntity.ok("Password reset successfully. ");
+    }
+
+    @PostMapping("/login-user")
+    public ResponseEntity<LoginResponse> loginUser1(@RequestBody LoginRequestDto loginRequestDto){
+
+        return ResponseEntity.ok(userService.loginUser(loginRequestDto));
+
     }
 
 }

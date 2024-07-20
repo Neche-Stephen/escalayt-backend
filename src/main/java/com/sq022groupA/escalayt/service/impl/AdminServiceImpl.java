@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.service.impl;
 
+import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.repository.AdminRepository;
 import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
@@ -15,32 +16,23 @@ import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
-    private final JwtTokenRepository jwtTokenRepository ;
+    private final JwtTokenRepository jwtTokenRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConfirmationTokenRepository confirmationTokenRepository;
@@ -257,87 +249,4 @@ public class AdminServiceImpl implements AdminService {
         return "A reset password link has been sent to your account." + resetPasswordUrl;
     }
 
-    @Service
-    public static class JwtService {
-        private final static String SECRET_KEY =
-                "JpLx8hyycP9RwoEJ+0sSj3p4xsIBmfYe4vVbequytgVfTqXN93NcaTlAVo9y3fpC" +
-                        "" +
-                        "DstegCKTDKFcU30iPKiRbQ==";
-
-        // Extract all claims
-        private Claims extractAllClaims(String token){
-
-            return Jwts
-                    .parser()
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-        }
-
-
-        private Key getSignInKey() {
-            byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-
-            return Keys.hmacShaKeyFor(keyBytes);
-        }
-
-        // extract single claims
-        public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
-            final Claims claims = extractAllClaims(token);
-
-            return claimsResolver.apply(claims);
-        }
-
-        public String extractUsername(String token){
-            return extractClaim(token, Claims::getSubject);
-        }
-
-        // method to generate token
-
-        public String generateToken(Map<String, Object> extractClaims, UserDetails userDetails){
-            extractClaims.put("roles", userDetails.getAuthorities().stream()
-                    .map(grantedAuthority -> grantedAuthority.getAuthority())
-                    .collect(Collectors.toList()));
-
-            return Jwts
-                    .builder()
-                    .setClaims(extractClaims)
-                    .setSubject(userDetails.getUsername())
-                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() +
-                            1000 * 60 * 60 * 24
-                    ))
-                    .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                    .compact();
-        }
-
-        public String generateToken(UserDetails userDetails){
-            return (generateToken(new HashMap<>(), userDetails));
-        }
-
-        // Check if the token is valid
-
-        public Boolean isTokenValid(String token, UserDetails userDetails){
-            final String userName = extractUsername(token);
-
-            return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
-        }
-
-        private boolean isTokenExpired(String token) {
-            return  extractExpiration(token).before(new Date());
-        }
-
-        private Date extractExpiration(String token){
-            return extractClaim(token, Claims::getExpiration);
-        }
-
-        // Extract roles from the token
-        public List<String> extractRoles(String token) {
-            Claims claims = extractAllClaims(token);
-            return claims.get("roles", List.class);
-        }
-
-    }
 }

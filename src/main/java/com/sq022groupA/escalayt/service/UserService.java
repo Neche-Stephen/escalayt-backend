@@ -7,5 +7,7 @@ import jakarta.mail.MessagingException;
 
 public interface UserService {
 
-    UserRegistrationResponse registerUser(UserRegistrationDto userRegistrationDto) throws MessagingException;
+    UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException;
+
+    LoginResponse loginUser(LoginRequestDto loginRequestDto);
 }
