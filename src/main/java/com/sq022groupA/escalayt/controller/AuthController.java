@@ -3,7 +3,7 @@ package com.sq022groupA.escalayt.controller;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.TokenValidationService;
-import com.sq022groupA.escalayt.service.UserService;
+import com.sq022groupA.escalayt.service.AdminService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +17,16 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserService userService;
+    private final AdminService adminService;
 
     private final TokenValidationService tokenValidationService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody UserRequest registrationRequest) {
+    public ResponseEntity<?> register(@Valid @RequestBody AdminRequest registrationRequest) {
 
         try{
 
-            String registerUser  = userService.register(registrationRequest);
+            String registerUser  = adminService.register(registrationRequest);
 
             if(!registerUser.equals("Invalid Email domain")){
 
@@ -53,7 +53,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequestDto loginRequestDto){
 
-        return ResponseEntity.ok(userService.loginUser(loginRequestDto));
+        return ResponseEntity.ok(adminService.loginUser(loginRequestDto));
 
     }
 
@@ -73,7 +73,7 @@ public class AuthController {
     @PostMapping("/forget_password")
     public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordDto forgetPasswordDto){
 
-        String result = userService.forgotPassword(forgetPasswordDto);
+        String result = adminService.forgotPassword(forgetPasswordDto);
 
         return ResponseEntity.ok(Collections.singletonMap("message", result));
     }
@@ -81,7 +81,7 @@ public class AuthController {
     // new password reset
     @PostMapping("/new-password-reset")
     public ResponseEntity<String> newResetPassword(@RequestBody PasswordResetDto request){
-        userService.resetPassword(request);
+        adminService.resetPassword(request);
         return ResponseEntity.ok("Password reset successfully. ");
     }
 

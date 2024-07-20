@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserRequest {
+public class AdminRequest {
 
     @NotBlank(message = "First name is required")
     private String firstName;

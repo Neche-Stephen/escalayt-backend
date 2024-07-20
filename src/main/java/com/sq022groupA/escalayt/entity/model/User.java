@@ -23,9 +23,7 @@ import java.util.stream.Collectors;
 @Table(name = "user_tbl")
 public class User extends BaseClass implements UserDetails {
 
-    private String firstName;
-
-    private String lastName;
+    private String fullName;
 
     private String username;
 
@@ -37,7 +35,7 @@ public class User extends BaseClass implements UserDetails {
 
     private String phoneNumber;
 
-    private String role;
+    private String jobTitle;
 
     private String department;
 
@@ -48,11 +46,10 @@ public class User extends BaseClass implements UserDetails {
     private LocalDateTime tokenCreationDate;
 
 
-    @OneToMany(mappedBy = "createdBy")
+    @OneToMany(mappedBy = "createdByUser")
     private List<Ticket> createdTickets;
 
-
-    @OneToMany(mappedBy = "resolvedBy")
+    @OneToMany(mappedBy = "resolvedByUser")
     private List<Ticket> resolvedTickets;
 
 

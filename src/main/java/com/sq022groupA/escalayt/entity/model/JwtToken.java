@@ -22,6 +22,10 @@ public class JwtToken extends BaseClass {
     public boolean expired;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id")
+    public Admin admin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     public User user;
 }

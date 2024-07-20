@@ -1,8 +1,7 @@
 package com.sq022groupA.escalayt.entity.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +14,13 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Builder
+@Table(name = "admin_tbl")
 public class Admin implements UserDetails {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -45,11 +50,10 @@ public class Admin implements UserDetails {
     private LocalDateTime tokenCreationDate;
 
 
-    @OneToMany(mappedBy = "createdBy")
+    @OneToMany(mappedBy = "createdByAdmin")
     private List<Ticket> createdTickets;
 
-
-    @OneToMany(mappedBy = "resolvedBy")
+    @OneToMany(mappedBy = "resolvedByAdmin")
     private List<Ticket> resolvedTickets;
 
 
@@ -62,7 +66,7 @@ public class Admin implements UserDetails {
     private Set<Role> roles;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
     private List<JwtToken> jtokens;
 
 
