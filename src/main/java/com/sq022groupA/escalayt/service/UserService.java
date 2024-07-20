@@ -6,8 +6,5 @@ import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import jakarta.mail.MessagingException;
 
 public interface UserService {
-
-    UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException;
-
     LoginResponse loginUser(LoginRequestDto loginRequestDto);
 }

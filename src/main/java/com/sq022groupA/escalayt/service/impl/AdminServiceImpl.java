@@ -2,20 +2,16 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
-import com.sq022groupA.escalayt.repository.AdminRepository;
-import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
-import com.sq022groupA.escalayt.repository.JwtTokenRepository;
-import com.sq022groupA.escalayt.repository.RoleRepository;
+import com.sq022groupA.escalayt.payload.response.*;
+import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
-import com.sq022groupA.escalayt.payload.response.EmailDetails;
-import com.sq022groupA.escalayt.payload.response.LoginInfo;
-import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
+import com.sq022groupA.escalayt.utils.UserRegistrationEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +28,7 @@ import java.util.*;
 public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
+    private final UserRepository userRepository;
     private final JwtTokenRepository jwtTokenRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -248,5 +245,82 @@ public class AdminServiceImpl implements AdminService {
 
         return "A reset password link has been sent to your account." + resetPasswordUrl;
     }
+
+
+
+
+    // USER/EMPLOYEE RELATED SERVICE IMPLEMENTATIONS \\
+
+
+    // USER/EMPLOYEE REGISTRATION
+    @Override
+    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException {
+        // GET ADMIN ID BY USERNAME
+        Optional<Admin> loggedInAdmin = adminRepository.findByUsername(currentUsername);
+
+        // Check if admin is present
+        if (loggedInAdmin.isEmpty()) {
+            throw new RuntimeException("Admin user not found");
+        }
+
+        // Check if the email already exists
+        Optional<User> existingUser = userRepository.findByEmail(userRegistrationDto.getEmail());
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("User email already exists");
+        }
+
+        Optional<Role> userRole = roleRepository.findByName("USER");
+        if (userRole.isEmpty()) {
+            throw new RuntimeException("Default role ADMIN not found in the database.");
+        }
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole.get());
+
+        // Build new User entity
+        User newUser = User.builder()
+                .fullName(userRegistrationDto.getFullName())
+                .email(userRegistrationDto.getEmail())
+                .phoneNumber(userRegistrationDto.getPhoneNumber())
+                .jobTitle(userRegistrationDto.getJobTitle())
+                .department(userRegistrationDto.getDepartment())
+                .username(userRegistrationDto.getUsername())
+                .password(passwordEncoder.encode(userRegistrationDto.getPassword()))
+                .createdUnder(loggedInAdmin.get().getId())
+                .roles(roles)
+                .build();
+
+        // Save new user to the repository
+        User savedUser = userRepository.save(newUser);
+
+        // Set up email message for the registered user/employee
+        String userLoginUrl = baseUrl + "/user-login";
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(savedUser.getEmail())
+                .subject("ACTIVATE YOUR ACCOUNT")
+                .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
+                        savedUser.getUsername(), userRegistrationDto.getPassword(), userLoginUrl))
+                .build();
+
+        // Send email message to the registered user/employee
+        emailService.mimeMailMessage(emailDetails);
+
+        // Method response
+        return UserRegistrationResponse.builder()
+                .responseTemplate(ResponseTemplate.builder()
+                        .responseCode("007")
+                        .responseMessage("User/Employee Created Successfully")
+                        .build())
+                .fullName(savedUser.getFullName())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .phoneNumber(savedUser.getPhoneNumber())
+                .jobTitle(savedUser.getJobTitle())
+                .department(savedUser.getDepartment())
+                .createdUnder(savedUser.getCreatedUnder())
+                .build();
+    }
+
 
 }

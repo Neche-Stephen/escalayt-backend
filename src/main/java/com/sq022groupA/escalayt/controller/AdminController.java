@@ -1,7 +1,10 @@
 package com.sq022groupA.escalayt.controller;
 
 import com.sq022groupA.escalayt.payload.request.UserDetailsDto;
+import com.sq022groupA.escalayt.payload.request.UserRegistrationDto;
+import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import com.sq022groupA.escalayt.service.AdminService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,6 +31,18 @@ public class AdminController {
 
         // Return HTTP 200 OK response with the edited user details response.
         return ResponseEntity.ok(response);
+    }
+
+    // @PreAuthorize("ROLE_ADMIN")
+    @PostMapping("/register-user")
+    public ResponseEntity<UserRegistrationResponse> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) throws MessagingException {
+
+        // Get the currently authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        return ResponseEntity.ok(adminService.registerUser(currentUsername, userRegistrationDto));
+
     }
 
 }
