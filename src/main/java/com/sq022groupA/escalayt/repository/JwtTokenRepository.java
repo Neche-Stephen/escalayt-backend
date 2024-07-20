@@ -10,8 +10,8 @@ import java.util.Optional;
 public interface JwtTokenRepository extends JpaRepository<JwtToken, Long> {
 
     @Query(value = """
-      select t from JwtToken t inner join User u\s
-      on t.user.id = u.id\s
+      select t from JwtToken t inner join Admin u\s
+      on t.admin.id = u.id\s
       where u.id = :id and (t.expired = false or t.revoked = false)\s
       """)
     List<JwtToken> findAllValidTokenByUser(Long id);

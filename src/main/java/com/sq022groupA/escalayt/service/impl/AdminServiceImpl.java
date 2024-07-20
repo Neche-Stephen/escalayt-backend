@@ -1,12 +1,10 @@
 package com.sq022groupA.escalayt.service.impl;
 
-import com.sq022groupA.escalayt.entity.model.ConfirmationToken;
-import com.sq022groupA.escalayt.entity.model.JwtToken;
-import com.sq022groupA.escalayt.entity.model.Role;
+import com.sq022groupA.escalayt.entity.model.*;
+import com.sq022groupA.escalayt.repository.AdminRepository;
 import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
 import com.sq022groupA.escalayt.repository.JwtTokenRepository;
 import com.sq022groupA.escalayt.repository.RoleRepository;
-import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
@@ -14,9 +12,8 @@ import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.EmailDetails;
 import com.sq022groupA.escalayt.payload.response.LoginInfo;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
-import com.sq022groupA.escalayt.repository.UserRepository;
 import com.sq022groupA.escalayt.service.EmailService;
-import com.sq022groupA.escalayt.service.UserService;
+import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -40,9 +37,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class AdminServiceImpl implements AdminService {
 
-    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final JwtTokenRepository jwtTokenRepository ;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -58,10 +55,10 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public String register(UserRequest registrationRequest) throws MessagingException {
+    public String register(AdminRequest registrationRequest) throws MessagingException {
 
         //Optional<User> existingUser = userRepository.findByEmail(registrationRequest.getEmail());
-        Optional<User> existingUser = userRepository.findByUsername(registrationRequest.getUserName());
+        Optional<Admin> existingUser = adminRepository.findByUsername(registrationRequest.getUserName());
 
 
         if(existingUser.isPresent()){
@@ -69,21 +66,21 @@ public class UserServiceImpl implements UserService {
         }
 
         // check if username already exists
-        Optional<User> existingUserByUsername = userRepository.findByUsername(registrationRequest.getUserName());
+        Optional<Admin> existingUserByUsername = adminRepository.findByUsername(registrationRequest.getUserName());
         if (existingUserByUsername.isPresent()) {
             throw new UsernameAlreadyExistsException("Username already exists. Please choose another username.");
         }
 
-        Optional<Role> userRole = roleRepository.findByName("USER");
+        Optional<Role> userRole = roleRepository.findByName("ADMIN");
         if (userRole.isEmpty()) {
-            throw new RuntimeException("Default role USER not found in the database.");
+            throw new RuntimeException("Default role ADMIN not found in the database.");
         }
 
         Set<Role> roles = new HashSet<>();
         roles.add(userRole.get());
 
 
-        User newUser = User.builder()
+        Admin newUser = Admin.builder()
                 .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
                 .username(registrationRequest.getUserName())
@@ -93,7 +90,7 @@ public class UserServiceImpl implements UserService {
                 .roles(roles)
                 .build();
 
-        User savedUser = userRepository.save(newUser);
+        Admin savedUser = adminRepository.save(newUser);
 
         ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
         confirmationTokenRepository.save(confirmationToken);
@@ -122,30 +119,30 @@ public class UserServiceImpl implements UserService {
                         loginRequestDto.getPassword()
                 )
         );
-        User user = userRepository.findByUsername(loginRequestDto.getUsername())
+        Admin admin = adminRepository.findByUsername(loginRequestDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + loginRequestDto.getUsername()));
 
-        if (!user.isEnabled()) {
+        if (!admin.isEnabled()) {
             throw new RuntimeException("User account is not enabled. Please check your email to confirm your account.");
         }
 
-        var jwtToken = jwtService.generateToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
+        var jwtToken = jwtService.generateToken(admin);
+        revokeAllUserTokens(admin);
+        saveUserToken(admin, jwtToken);
 
         return LoginResponse.builder()
                 .responseCode("002")
                 .responseMessage("Login Successfully")
                 .loginInfo(LoginInfo.builder()
-                        .username(user.getUsername())
+                        .username(admin.getUsername())
                         .token(jwtToken)
                         .build())
                 .build();
     }
 
-    private void saveUserToken(User userModel, String jwtToken) {
+    private void saveUserToken(Admin userModel, String jwtToken) {
         var token = JwtToken.builder()
-                .user(userModel)
+                .admin(userModel)
                 .token(jwtToken)
                 .tokenType("BEARER")
                 .expired(false)
@@ -154,8 +151,8 @@ public class UserServiceImpl implements UserService {
         jwtTokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(User userModel) {
-        var validUserTokens = jwtTokenRepository.findAllValidTokenByUser(userModel.getId());
+    private void revokeAllUserTokens(Admin adminModel) {
+        var validUserTokens = jwtTokenRepository.findAllValidTokenByUser(adminModel.getId());
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {
@@ -171,7 +168,7 @@ public class UserServiceImpl implements UserService {
             throw new PasswordsDoNotMatchException("New password and confirm password do not match.");
         }
 
-        User user = userRepository.findByEmail(passwordResetDto.getEmail())
+        Admin user = adminRepository.findByEmail(passwordResetDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + passwordResetDto.getEmail()));
 
         if(user.getResetToken() != null){
@@ -179,35 +176,35 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
-        userRepository.save(user);
+        adminRepository.save(user);
     }
 
     @Override
     public void newResetPassword(PasswordResetDto passwordResetDto) {
-        User user = userRepository.findByEmail(passwordResetDto.getEmail())
+        Admin admin = adminRepository.findByEmail(passwordResetDto.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + passwordResetDto.getEmail()));
 
-        if(user.getResetToken() != null){
+        if(admin.getResetToken() != null){
             return;
         }
 
-        user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
-        userRepository.save(user);
+        admin.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
+        adminRepository.save(admin);
     }
 
     @Override
     public String editUserDetails(String username, UserDetailsDto userDetailsDto) {
-        User user = userRepository.findByUsername(username)
+        Admin admin = adminRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         //Update user details
-        user.setFirstName(userDetailsDto.getFirstName());
-        user.setLastName(userDetailsDto.getLastName());
-        user.setEmail(userDetailsDto.getEmail());
-        user.setPhoneNumber(userDetailsDto.getPhoneNumber());
+        admin.setFirstName(userDetailsDto.getFirstName());
+        admin.setLastName(userDetailsDto.getLastName());
+        admin.setEmail(userDetailsDto.getEmail());
+        admin.setPhoneNumber(userDetailsDto.getPhoneNumber());
 
         //save the updated user
-        userRepository.save(user);
+        adminRepository.save(admin);
 
         return "User details updated successfully";
     }
@@ -226,12 +223,12 @@ public class UserServiceImpl implements UserService {
         6- send email with reset url link
          */
 
-        Optional<User> checkUser = userRepository.findByEmail(forgetPasswordDto.getEmail());
+        Optional<Admin> checkUser = adminRepository.findByEmail(forgetPasswordDto.getEmail());
 
         // check if user exist with that email
         if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
 
-        User forgettingUser = checkUser.get();
+        Admin forgettingUser = checkUser.get();
 
         // generate a hashed token
         ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);

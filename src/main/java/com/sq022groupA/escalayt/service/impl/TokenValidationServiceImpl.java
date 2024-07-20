@@ -1,9 +1,10 @@
 package com.sq022groupA.escalayt.service.impl;
 
+import com.sq022groupA.escalayt.entity.model.Admin;
 import com.sq022groupA.escalayt.entity.model.ConfirmationToken;
+import com.sq022groupA.escalayt.repository.AdminRepository;
 import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
 import com.sq022groupA.escalayt.entity.model.User;
-import com.sq022groupA.escalayt.repository.UserRepository;
 import com.sq022groupA.escalayt.service.TokenValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ import java.util.Optional;
 public class TokenValidationServiceImpl implements TokenValidationService {
 
     private final ConfirmationTokenRepository confirmationTokenRepository;
-    private final UserRepository userModelRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     public String validateToken(String token) {
@@ -32,9 +33,9 @@ public class TokenValidationServiceImpl implements TokenValidationService {
             return "Token has expired";
         }
 
-        User user = confirmationToken.getUser();
-        user.setEnabled(true);
-        userModelRepository.save(user);
+        Admin user = confirmationToken.getAdmin();
+        //user.setEnabled(true);
+        adminRepository.save(user);
 
         confirmationTokenRepository.delete(confirmationToken); //delete the token after successful verification
 

@@ -1,6 +1,6 @@
 package com.sq022groupA.escalayt.config;
 
-import com.sq022groupA.escalayt.repository.UserRepository;
+import com.sq022groupA.escalayt.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -26,7 +26,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService(){
-        return username -> userRepository.findByUsername(username)
+        return username -> adminRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 

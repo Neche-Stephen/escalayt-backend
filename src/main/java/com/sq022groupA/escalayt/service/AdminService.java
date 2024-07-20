@@ -4,9 +4,9 @@ import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import jakarta.mail.MessagingException;
 
-public interface UserService {
+public interface AdminService {
 
-    String register(UserRequest registrationRequest) throws MessagingException;
+    String register(AdminRequest registrationRequest) throws MessagingException;
     LoginResponse loginUser(LoginRequestDto loginRequestDto);
     void resetPassword(PasswordResetDto passwordResetDto);
     void newResetPassword(PasswordResetDto passwordResetDto);

@@ -28,8 +28,8 @@ public class ConfirmationToken {
     private LocalDateTime expiresAt;
 
     @ManyToOne
-    @JoinColumn(nullable = false, name = "user_id")
-    private User user;
+    @JoinColumn(nullable = false, name = "admin_id")
+    private Admin admin;
     /*
     It means that many confirmation tokens can be associated with a single user.For example, a user might request
     multiple confirmation emails, each generating a new confirmation token. This setup ensures that every token can
@@ -37,11 +37,11 @@ public class ConfirmationToken {
      */
 
 
-    public ConfirmationToken(User user){
+    public ConfirmationToken(Admin admin){
         this.token = UUID.randomUUID().toString();
         this.createdAt = LocalDateTime.now();
         this.expiresAt = LocalDateTime.now().plusHours(24); // token valid for 24 hours
-        this.user = user;
+        this.admin = admin;
     }
 
 }

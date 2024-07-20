@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserInfo {
+public class AdminInfo {
     private String userName;
 
     private String email;
