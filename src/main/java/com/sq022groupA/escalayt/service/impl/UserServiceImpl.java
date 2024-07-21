@@ -25,12 +25,20 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final JwtTokenRepository jwtTokenRepository;
+    private final AuthenticationManager authenticationManager;
 
     @Value("${baseUrl}")
     private String baseUrl;
 
     @Override
     public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getUsername(),
+                        loginRequestDto.getPassword()
+                )
+        );
 
         User user = userRepository.findByUsername(loginRequestDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + loginRequestDto.getUsername()));
