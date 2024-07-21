@@ -14,6 +14,7 @@ public interface AdminService {
     String editUserDetails(String username, UserDetailsDto userDetailsDto);
     String forgotPassword (ForgetPasswordDto forgetPasswordDto);
 
+
     // USER/EMPLOYEE RELATED METHODS
     UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException;
 

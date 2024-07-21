@@ -82,9 +82,11 @@ public class UserRegistrationEmailBody {
                 "    <!-- Content -->\n" +
                 "    <div class=\"content\">\n" +
                 "        <p>Hello " + fullName + ",</p>\n" +
-                "        <p>Thank You for using our Escalayt Application <strong>TEAM-A SQ022</strong> Decagon Institute. Click the button below to <strong>RESET</strong> your <strong>PASSWORD</strong>  </p>\n" +
+                "        <p>You have been registered on the Escalayt Application <strong>TEAM-A SQ022</strong> Decagon Institute. Click the button below to login your account and <strong>RESET</strong> your <strong>PASSWORD</strong> using the credentials below. </p>\n" +
+                "        <p>USERNAME: " + username + "</p>\n" +
+                "        <p>PASSWORD: " + password + "</p>\n" +
                 "        <a href="+ link +" class=\"btn\">Reset Password</a>\n" +
-                "        <p>If you did not initiate the process, please ignore this email.</p>\n" +
+                "        <p>If you do not consent with this process, please ignore this email.</p>\n" +
                 "    </div>\n" +
                 "\n" +
                 "    <!-- Footer -->\n" +
