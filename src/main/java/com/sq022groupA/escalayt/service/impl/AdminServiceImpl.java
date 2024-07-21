@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 @Service
@@ -249,7 +250,7 @@ public class AdminServiceImpl implements AdminService {
 
 
 
-    // USER/EMPLOYEE RELATED SERVICE IMPLEMENTATIONS \\
+    /////------ USER/EMPLOYEE RELATED SERVICE IMPLEMENTATIONS -----\\\\\
 
 
     // USER/EMPLOYEE REGISTRATION
@@ -263,7 +264,7 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Admin user not found");
         }
 
-        // Check if the email already exists
+        // Check if the user email already exists
         Optional<User> existingUser = userRepository.findByEmail(userRegistrationDto.getEmail());
         if (existingUser.isPresent()) {
             throw new RuntimeException("User email already exists");
@@ -271,11 +272,15 @@ public class AdminServiceImpl implements AdminService {
 
         Optional<Role> userRole = roleRepository.findByName("USER");
         if (userRole.isEmpty()) {
-            throw new RuntimeException("Default role ADMIN not found in the database.");
+            throw new RuntimeException("Default role USER not found in the database.");
         }
 
         Set<Role> roles = new HashSet<>();
         roles.add(userRole.get());
+
+        // Generate username and password
+        String generatedUsername = generateUserName(userRegistrationDto.getFullName());
+        String generatedPassword = generatePassword();
 
         // Build new User entity
         User newUser = User.builder()
@@ -284,8 +289,8 @@ public class AdminServiceImpl implements AdminService {
                 .phoneNumber(userRegistrationDto.getPhoneNumber())
                 .jobTitle(userRegistrationDto.getJobTitle())
                 .department(userRegistrationDto.getDepartment())
-                .username(userRegistrationDto.getUsername())
-                .password(passwordEncoder.encode(userRegistrationDto.getPassword()))
+                .username(generatedUsername)
+                .password(passwordEncoder.encode(generatedPassword))
                 .createdUnder(loggedInAdmin.get().getId())
                 .roles(roles)
                 .build();
@@ -300,7 +305,7 @@ public class AdminServiceImpl implements AdminService {
                 .recipient(savedUser.getEmail())
                 .subject("ACTIVATE YOUR ACCOUNT")
                 .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
-                        savedUser.getUsername(), userRegistrationDto.getPassword(), userLoginUrl))
+                        savedUser.getUsername(), generatedPassword, userLoginUrl))
                 .build();
 
         // Send email message to the registered user/employee
@@ -322,5 +327,20 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
+    private static String generateUserName(String fullName) {
+        String firstFourLetters = fullName.replaceAll("\\s+", "").substring(0, Math.min(fullName.length(), 4)).toLowerCase();
+        int randomNumbers = new Random().nextInt(900) + 100; // 3-digit random number
+        return firstFourLetters + randomNumbers;
+    }
+
+    private static String generatePassword() {
+        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder(6);
+        for (int i = 0; i < 6; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return password.toString();
+    }
 
 }

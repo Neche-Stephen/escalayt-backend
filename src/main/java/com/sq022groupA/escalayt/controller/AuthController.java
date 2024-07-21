@@ -87,6 +87,11 @@ public class AuthController {
         return ResponseEntity.ok("Password reset successfully. ");
     }
 
+
+
+
+    // USER/EMPLOYEE RELATED AUTH CONTROLLER \\
+
     @PostMapping("/login-user")
     public ResponseEntity<LoginResponse> loginUser1(@RequestBody LoginRequestDto loginRequestDto){
 
