@@ -76,7 +76,7 @@ public class UserRegistrationEmailBody {
                 "<div class=\"email-wrapper\">\n" +
                 "    <!-- Header -->\n" +
                 "    <div class=\"header\">\n" +
-                "        <h1>Email Verification</h1>\n" +
+                "        <h1>Reset your Password</h1>\n" +
                 "    </div>\n" +
                 "\n" +
                 "    <!-- Content -->\n" +

@@ -42,36 +42,12 @@ public class AdminController {
     /////------ USER/EMPLOYEE RELATED ADMIN ENDPOINTS -----\\\\\
 
 
-
-
     // @PreAuthorize("ROLE_ADMIN")
     @PostMapping("/register-user")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) {
-        try {
-            // Get the currently authenticated user
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentUsername = authentication.getName();
-
-            UserRegistrationResponse response = adminService.registerUser(currentUsername, userRegistrationDto);
-            return ResponseEntity.ok(response);
-        } catch (MessagingException e) {
-            ErrorResponse errorResponse = new ErrorResponse(
-                    LocalDateTime.now(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                    "Error sending email: " + e.getMessage(),
-                    "/api/v1/admin/register-user"
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        } catch (Exception e) {
-            ErrorResponse errorResponse = new ErrorResponse(
-                    LocalDateTime.now(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                    e.getMessage(),
-                    "/api/v1/admin/register-user"
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+    public ResponseEntity<UserRegistrationResponse> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) throws MessagingException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        UserRegistrationResponse response = adminService.registerUser(currentUsername, userRegistrationDto);
+        return ResponseEntity.ok(response);
     }
 }
