@@ -48,4 +48,10 @@ public class Ticket extends BaseClass{
     @ManyToOne(optional = true)
     @JoinColumn(name = "resolved_by_admin_id", foreignKey = @ForeignKey(name = "FK_ticket_resolved_by_admin"))
     private Admin resolvedByAdmin;
+
+    private int rating;
+
+    // Review for the ticket rating
+    private String review;
+
 }
