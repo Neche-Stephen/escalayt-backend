@@ -41,8 +41,6 @@ public class AdminController {
 
     /////------ USER/EMPLOYEE RELATED ADMIN ENDPOINTS -----\\\\\
 
-
-    // @PreAuthorize("ROLE_ADMIN")
     @PostMapping("/register-user")
     public ResponseEntity<UserRegistrationResponse> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) throws MessagingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
