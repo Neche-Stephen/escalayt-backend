@@ -38,7 +38,9 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.GET, "/swagger-ui.html"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui/**"),
                                         antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
-                                        antMatcher(HttpMethod.GET, "/swagger-resources/**")).permitAll()
+                                        antMatcher(HttpMethod.GET, "/swagger-resources/**"),
+                                        antMatcher(HttpMethod.POST, "/token/**")
+                                ).permitAll()
                                 .requestMatchers("/api/v1/ticket/**").hasAnyAuthority("USER", "ADMIN")
                                 .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER", "ADMIN")
                                 .anyRequest().authenticated()
