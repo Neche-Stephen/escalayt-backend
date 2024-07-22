@@ -76,4 +76,14 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // theis method handles general DoesNotExistException
+    // so no need to create another exception for Does not exist again
+    // you can just throw this error and pass the unique custom error message
+    @ExceptionHandler(DoesNotExistException.class)
+    public ResponseEntity<String> handleTicketDoesNotExistException(DoesNotExistException ex){
+        // Returns a ResponseEntity with a status of 404 Not Found
+        // and the exception message as the response body.
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
 }
