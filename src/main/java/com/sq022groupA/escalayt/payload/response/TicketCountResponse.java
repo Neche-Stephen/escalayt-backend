@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CountResponse {
+public class TicketCountResponse {
     private Long totalTickets;
     private Long openTickets;
     private Long inProgressTickets;
