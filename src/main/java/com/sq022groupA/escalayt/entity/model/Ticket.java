@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 
 
 @Getter
@@ -48,4 +49,8 @@ public class Ticket extends BaseClass{
     @ManyToOne(optional = true)
     @JoinColumn(name = "resolved_by_admin_id", foreignKey = @ForeignKey(name = "FK_ticket_resolved_by_admin"))
     private Admin resolvedByAdmin;
+
+    // mapped ticket comment here
+    @OneToMany(mappedBy = "ticket")
+    private List<TicketComment> ticketComments;
 }
