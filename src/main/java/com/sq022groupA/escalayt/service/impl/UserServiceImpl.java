@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequestDto.getUsername(),
+
                         loginRequestDto.getPassword()
                 )
         );
