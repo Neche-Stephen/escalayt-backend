@@ -2,6 +2,7 @@ package com.sq022groupA.escalayt.entity.model;
 
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sq022groupA.escalayt.entity.enums.Category;
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;

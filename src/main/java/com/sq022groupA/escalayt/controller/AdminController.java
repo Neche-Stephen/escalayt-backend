@@ -1,5 +1,7 @@
 package com.sq022groupA.escalayt.controller;
 
+import com.sq022groupA.escalayt.entity.model.Admin;
+import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.exception.ErrorResponse;
 import com.sq022groupA.escalayt.payload.request.UserDetailsDto;
 import com.sq022groupA.escalayt.payload.request.UserRegistrationDto;
@@ -35,6 +37,18 @@ public class AdminController {
 
         // Return HTTP 200 OK response with the edited user details response.
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/new-admin-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String newPassword) {
+
+        // Get the currently authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        adminService.updatePassword(currentUsername, newPassword);
+
+        return ResponseEntity.ok("Password reset successfully.");
     }
 
 

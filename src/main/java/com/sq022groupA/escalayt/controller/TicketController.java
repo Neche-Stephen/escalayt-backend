@@ -26,11 +26,11 @@ public class TicketController {
     private final TicketService ticketService;
 
 
+    @GetMapping("/get")
+    public String helloWorld(){
+        return "Hello World!!!";
+    }
 
-//    @GetMapping("/get")
-//    public String helloWorld(){
-//        return "Hello World!!!";
-//    }
 
     @GetMapping("/category/ticket/{id}/get-comments")
     public ResponseEntity<?> ticketComment(@PathVariable Long id){
