@@ -1,7 +1,10 @@
 package com.sq022groupA.escalayt.service;
 
+import com.sq022groupA.escalayt.entity.model.Admin;
+import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
+import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import jakarta.mail.MessagingException;
 
 public interface AdminService {
@@ -11,8 +14,17 @@ public interface AdminService {
     void resetPassword(PasswordResetDto passwordResetDto);
     void newResetPassword(PasswordResetDto passwordResetDto);
     String editUserDetails(String username, UserDetailsDto userDetailsDto);
+    String forgotPassword (String email);
+
+    boolean existsByEmail(String email);
+    Admin findByResetToken(String token);
+    void updatePassword(String username, String newPassword);
+
+    String createToken(Admin admin);
 
 
-    String forgotPassword (ForgetPasswordDto forgetPasswordDto);
+    // USER/EMPLOYEE RELATED METHODS
+    UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException;
+
 
 }

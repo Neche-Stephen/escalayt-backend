@@ -39,6 +39,8 @@ public class User extends BaseClass implements UserDetails {
 
     private String department;
 
+    private Long createdUnder; // Id of the Admin
+
     private boolean isActive = true; // Flag for soft delete
 
     private String resetToken;

@@ -1,46 +1,41 @@
 package com.sq022groupA.escalayt.service.impl;
 
+import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
-import com.sq022groupA.escalayt.repository.AdminRepository;
-import com.sq022groupA.escalayt.repository.ConfirmationTokenRepository;
-import com.sq022groupA.escalayt.repository.JwtTokenRepository;
-import com.sq022groupA.escalayt.repository.RoleRepository;
+import com.sq022groupA.escalayt.exception.CustomException;
+import com.sq022groupA.escalayt.payload.response.*;
+import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
-import com.sq022groupA.escalayt.payload.response.EmailDetails;
-import com.sq022groupA.escalayt.payload.response.LoginInfo;
-import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
+import com.sq022groupA.escalayt.utils.UserRegistrationEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
     private final AdminRepository adminRepository;
-    private final JwtTokenRepository jwtTokenRepository ;
+    private final UserRepository userRepository;
+    private final JwtTokenRepository jwtTokenRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ConfirmationTokenRepository confirmationTokenRepository;
@@ -113,31 +108,40 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getUsername(),
-                        loginRequestDto.getPassword()
-                )
-        );
-        Admin admin = adminRepository.findByUsername(loginRequestDto.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found with username: " + loginRequestDto.getUsername()));
 
-        if (!admin.isEnabled()) {
-            throw new RuntimeException("User account is not enabled. Please check your email to confirm your account.");
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                            loginRequestDto.getUsername(),
+                                            loginRequestDto.getPassword()));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            Admin admin = adminRepository.findByUsername(loginRequestDto.getUsername())
+                    .orElseThrow(() -> new CustomException("User not found with username: " + loginRequestDto.getUsername()));
+
+
+            if (!admin.isEnabled()) {
+                throw new CustomException("User account is not enabled. Please check your email to confirm your account.");
+            }
+
+            var jwtToken = jwtService.generateToken(admin);
+            revokeAllUserTokens(admin);
+            saveUserToken(admin, jwtToken);
+
+            return LoginResponse.builder()
+                    .responseCode("002")
+                    .responseMessage("Login Successfully")
+                    .loginInfo(LoginInfo.builder()
+                            .username(admin.getUsername())
+                            .token(jwtToken)
+                            .build())
+                    .build();
+
+        }catch (AuthenticationException e) {
+            throw new CustomException("Invalid username or password!!", e);
         }
 
-        var jwtToken = jwtService.generateToken(admin);
-        revokeAllUserTokens(admin);
-        saveUserToken(admin, jwtToken);
-
-        return LoginResponse.builder()
-                .responseCode("002")
-                .responseMessage("Login Successfully")
-                .loginInfo(LoginInfo.builder()
-                        .username(admin.getUsername())
-                        .token(jwtToken)
-                        .build())
-                .build();
     }
 
     private void saveUserToken(Admin userModel, String jwtToken) {
@@ -209,135 +213,206 @@ public class AdminServiceImpl implements AdminService {
         return "User details updated successfully";
     }
 
+//    @Override
+//    public String forgotPassword(ForgetPasswordDto forgetPasswordDto) {
+//
+//
+//        /*
+//        steps
+//        1- check if email exist (settled)
+//        2- create a random token (done)
+//        3- Hash the token and add it to the db under the user (done)
+//        4- set expiration time for the token in the db (done)
+//        5- generate a reset url using the token (done)
+//        6- send email with reset url link
+//         */
+//
+//        Optional<Admin> checkUser = adminRepository.findByEmail(forgetPasswordDto.getEmail());
+//
+//        // check if user exist with that email
+//        if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
+//
+//        Admin forgettingUser = checkUser.get();
+//
+//        // generate a hashed token
+//        ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);
+//
+//        // saved the token.
+//        // the token has an expiration date
+//        confirmationTokenRepository.save(forgetPassWordToken);
+//        // System.out.println("the token "+forgetPassWordToken.getToken());
+//
+//        // generate a password reset url
+//        String resetPasswordUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + forgetPassWordToken.getToken();
+//
+//
+//
+//        // click this link to reset password;
+//        EmailDetails emailDetails = EmailDetails.builder()
+//                .recipient(forgettingUser.getEmail())
+//                .subject("FORGET PASSWORD")
+//                .messageBody(ForgetPasswordEmailBody.buildEmail(forgettingUser.getFirstName(),
+//                        forgettingUser.getLastName(), resetPasswordUrl))
+//                .build();
+//
+//        //send the reset password link
+//        emailService.mimeMailMessage(emailDetails);
+//
+//        return "A reset password link has been sent to your account." + resetPasswordUrl;
+//    }
+
     @Override
-    public String forgotPassword(ForgetPasswordDto forgetPasswordDto) {
+    public String forgotPassword(String email) {
 
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Admin not found"));
 
-        /*
-        steps
-        1- check if email exist (settled)
-        2- create a random token (done)
-        3- Hash the token and add it to the db under the user (done)
-        4- set expiration time for the token in the db (done)
-        5- generate a reset url using the token (done)
-        6- send email with reset url link
-         */
+        String token = UUID.randomUUID().toString();
+        admin.setResetToken(token);
+        admin.setTokenCreationDate(LocalDateTime.now());
+        adminRepository.save(admin);
 
-        Optional<Admin> checkUser = adminRepository.findByEmail(forgetPasswordDto.getEmail());
-
-        // check if user exist with that email
-        if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
-
-        Admin forgettingUser = checkUser.get();
-
-        // generate a hashed token
-        ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);
-
-        // saved the token.
-        // the token has an expiration date
-        confirmationTokenRepository.save(forgetPassWordToken);
-        // System.out.println("the token "+forgetPassWordToken.getToken());
-
-        // generate a password reset url
-        String resetPasswordUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + forgetPassWordToken.getToken();
-
-
+        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
-                .recipient(forgettingUser.getEmail())
+                .recipient(admin.getEmail())
                 .subject("FORGET PASSWORD")
-                .messageBody(ForgetPasswordEmailBody.buildEmail(forgettingUser.getFirstName(),
-                        forgettingUser.getLastName(), resetPasswordUrl))
+                .messageBody(ForgetPasswordEmailBody.buildEmail(admin.getLastName(), admin.getFirstName(), resetUrl ))
                 .build();
 
         //send the reset password link
         emailService.mimeMailMessage(emailDetails);
 
-        return "A reset password link has been sent to your account." + resetPasswordUrl;
+        return "A reset password link has been sent to your account email address:          " + resetUrl;
     }
 
-    @Service
-    public static class JwtService {
-        private final static String SECRET_KEY =
-                "JpLx8hyycP9RwoEJ+0sSj3p4xsIBmfYe4vVbequytgVfTqXN93NcaTlAVo9y3fpC" +
-                        "" +
-                        "DstegCKTDKFcU30iPKiRbQ==";
-
-        // Extract all claims
-        private Claims extractAllClaims(String token){
-
-            return Jwts
-                    .parser()
-                    .setSigningKey(getSignInKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-        }
-
-
-        private Key getSignInKey() {
-            byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
-
-            return Keys.hmacShaKeyFor(keyBytes);
-        }
-
-        // extract single claims
-        public <T> T extractClaim(String token, Function<Claims, T> claimsResolver){
-            final Claims claims = extractAllClaims(token);
-
-            return claimsResolver.apply(claims);
-        }
-
-        public String extractUsername(String token){
-            return extractClaim(token, Claims::getSubject);
-        }
-
-        // method to generate token
-
-        public String generateToken(Map<String, Object> extractClaims, UserDetails userDetails){
-            extractClaims.put("roles", userDetails.getAuthorities().stream()
-                    .map(grantedAuthority -> grantedAuthority.getAuthority())
-                    .collect(Collectors.toList()));
-
-            return Jwts
-                    .builder()
-                    .setClaims(extractClaims)
-                    .setSubject(userDetails.getUsername())
-                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() +
-                            1000 * 60 * 60 * 24
-                    ))
-                    .signWith(getSignInKey(), SignatureAlgorithm.HS256)
-                    .compact();
-        }
-
-        public String generateToken(UserDetails userDetails){
-            return (generateToken(new HashMap<>(), userDetails));
-        }
-
-        // Check if the token is valid
-
-        public Boolean isTokenValid(String token, UserDetails userDetails){
-            final String userName = extractUsername(token);
-
-            return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
-        }
-
-        private boolean isTokenExpired(String token) {
-            return  extractExpiration(token).before(new Date());
-        }
-
-        private Date extractExpiration(String token){
-            return extractClaim(token, Claims::getExpiration);
-        }
-
-        // Extract roles from the token
-        public List<String> extractRoles(String token) {
-            Claims claims = extractAllClaims(token);
-            return claims.get("roles", List.class);
-        }
-
+    public boolean existsByEmail(String email) {
+        return adminRepository.existsByEmail(email);
     }
+
+    public Admin findByResetToken(String token) {
+        return adminRepository.findByResetToken(token).orElse(null);
+    }
+
+    public void updatePassword(String currentUsername, String newPassword) {
+
+        // GET ADMIN ID BY USERNAME
+        Optional<Admin> currentAdmin = adminRepository.findByUsername(currentUsername);
+
+        // Check if admin is present
+        if (currentAdmin.isEmpty()) {
+            throw new RuntimeException("Admin user not found");
+        }
+
+        Admin admin = currentAdmin.get();
+
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminRepository.save(admin);
+    }
+
+    @Override
+    public String createToken(Admin admin) {
+
+        var jwtToken = jwtService.generateToken(admin);
+        revokeAllUserTokens(admin);
+        saveUserToken(admin, jwtToken);
+
+        return jwtToken;
+    }
+
+
+    /////------ USER/EMPLOYEE RELATED SERVICE IMPLEMENTATIONS -----\\\\\
+
+
+    // USER/EMPLOYEE REGISTRATION
+    @Override
+    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException {
+        // GET ADMIN ID BY USERNAME
+        Optional<Admin> loggedInAdmin = adminRepository.findByUsername(currentUsername);
+
+        // Check if admin is present
+        if (loggedInAdmin.isEmpty()) {
+            throw new RuntimeException("Admin user not found");
+        }
+
+        // Check if the user email already exists
+        Optional<User> existingUser = userRepository.findByEmail(userRegistrationDto.getEmail());
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("User email already exists");
+        }
+
+        Optional<Role> userRole = roleRepository.findByName("USER");
+        if (userRole.isEmpty()) {
+            throw new RuntimeException("Default role USER not found in the database.");
+        }
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole.get());
+
+        // Generate username and password
+        String generatedUsername = generateUserName(userRegistrationDto.getFullName());
+        String generatedPassword = generatePassword();
+
+        // Build new User entity
+        User newUser = User.builder()
+                .fullName(userRegistrationDto.getFullName())
+                .email(userRegistrationDto.getEmail())
+                .phoneNumber(userRegistrationDto.getPhoneNumber())
+                .jobTitle(userRegistrationDto.getJobTitle())
+                .department(userRegistrationDto.getDepartment())
+                .username(generatedUsername)
+                .password(passwordEncoder.encode(generatedPassword))
+                .createdUnder(loggedInAdmin.get().getId())
+                .roles(roles)
+                .build();
+
+        // Save new user to the repository
+        User savedUser = userRepository.save(newUser);
+
+        // Set up email message for the registered user/employee
+        String userLoginUrl = baseUrl + "/user-login";
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(savedUser.getEmail())
+                .subject("ACTIVATE YOUR ACCOUNT")
+                .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
+                        savedUser.getUsername(), generatedPassword, userLoginUrl))
+                .build();
+
+        // Send email message to the registered user/employee
+        emailService.mimeMailMessage(emailDetails);
+
+        // Method response
+        return UserRegistrationResponse.builder()
+                .responseTemplate(ResponseTemplate.builder()
+                        .responseCode("007")
+                        .responseMessage("User/Employee Created Successfully")
+                        .build())
+                .fullName(savedUser.getFullName())
+                .username(savedUser.getUsername())
+                .email(savedUser.getEmail())
+                .phoneNumber(savedUser.getPhoneNumber())
+                .jobTitle(savedUser.getJobTitle())
+                .department(savedUser.getDepartment())
+                .createdUnder(savedUser.getCreatedUnder())
+                .build();
+    }
+
+    private static String generateUserName(String fullName) {
+        String firstFourLetters = fullName.replaceAll("\\s+", "").substring(0, Math.min(fullName.length(), 4)).toLowerCase();
+        int randomNumbers = new Random().nextInt(900) + 100; // 3-digit random number
+        return firstFourLetters + randomNumbers;
+    }
+
+    private static String generatePassword() {
+        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder(6);
+        for (int i = 0; i < 6; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return password.toString();
+    }
+
 }

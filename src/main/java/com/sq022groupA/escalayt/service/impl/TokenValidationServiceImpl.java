@@ -33,9 +33,9 @@ public class TokenValidationServiceImpl implements TokenValidationService {
             return "Token has expired";
         }
 
-        Admin user = confirmationToken.getAdmin();
-        //user.setEnabled(true);
-        adminRepository.save(user);
+        Admin admin = confirmationToken.getAdmin();
+        admin.setEnabled(true);
+        adminRepository.save(admin);
 
         confirmationTokenRepository.delete(confirmationToken); //delete the token after successful verification
 

@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.exception;
 
+import jakarta.mail.MessagingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -23,11 +24,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    //// This method handles exceptions of type UserNotFoundException.
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex){
-        // Returns a ResponseEntity with a status of 404 Not Found
-        // and the exception message as the response body.
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
@@ -55,17 +53,37 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler(TicketNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(TicketNotFoundException exception, WebRequest request) {
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ErrorResponse> handleMessagingException(MessagingException exception, WebRequest request) {
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.NOT_FOUND.value())
-                .error("Ticket Not Found")
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                .message("Error sending email: " + exception.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception exception, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message(exception.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false))
                 .build();
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
+    // theis method handles general DoesNotExistException
+    // so no need to create another exception for Does not exist again
+    // you can just throw this error and pass the unique custom error message
+    @ExceptionHandler(DoesNotExistException.class)
+    public ResponseEntity<String> handleTicketDoesNotExistException(DoesNotExistException ex){
+        // Returns a ResponseEntity with a status of 404 Not Found
+        // and the exception message as the response body.
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
 }

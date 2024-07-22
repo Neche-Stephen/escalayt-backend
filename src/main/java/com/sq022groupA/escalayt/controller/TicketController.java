@@ -1,15 +1,19 @@
 package com.sq022groupA.escalayt.controller;
 
 
-import com.sq022groupA.escalayt.entity.enums.Category;
-import com.sq022groupA.escalayt.entity.enums.Priority;
-import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
-import com.sq022groupA.escalayt.payload.request.TicketRatingRequest;
-import com.sq022groupA.escalayt.payload.request.TicketResolutionRequest;
+import com.sq022groupA.escalayt.entity.model.TicketComment;
+import com.sq022groupA.escalayt.payload.request.TicketCategoryRequestDto;
+import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
+import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
+import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
+import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
+import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
 import com.sq022groupA.escalayt.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,43 +25,89 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+
     @GetMapping("/get")
     public String helloWorld(){
         return "Hello World!!!";
     }
 
-    //Endpoint to filter tickets by priority, status, assignee, category
-    @GetMapping("/filter")
-    public ResponseEntity<List<Ticket>> filterTickets(@RequestParam(required = false) Priority priority,
-            @RequestParam(required = false) Status status, @RequestParam(required = false) Long assigneeId,
-            @RequestParam(required = false) Category category) {
 
-        List<Ticket> filteredTickets = ticketService.filterTickets(priority, status, assigneeId, category);
-        return ResponseEntity.ok(filteredTickets);
+    @GetMapping("/category/ticket/{id}/get-comments")
+    public ResponseEntity<?> ticketComment(@PathVariable Long id){
+
+
+        // get the list of the comments
+        List<TicketComment> response = ticketService.getTicketComments(id);
+
+
+        // return the response
+        return ResponseEntity.ok(response);
     }
 
-    //Endpoint to preview a ticket
-    @GetMapping("/{ticketId}")
-    public ResponseEntity<Ticket> getTicket(@PathVariable Long ticketId) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        return ResponseEntity.ok(ticket);
+
+    // create a new comment
+    @PostMapping("/category/ticket/{id}/create-comment")
+    public ResponseEntity<?> createComment(@PathVariable Long id, @RequestBody TicketCommentRequestDto ticketCommentRequestDto){
+
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // update the db and return response
+        TicketCommentResponse ticketCommentResponse = ticketService.createTicketComment(ticketCommentRequestDto, id, currentUsername);
+
+
+        return ResponseEntity.ok(ticketCommentResponse);
     }
 
-    //Endpoint to resolve a ticket
-    @PutMapping("/{ticketId}/resolve")
-    public ResponseEntity<Ticket> resolveTicket(@PathVariable Long ticketId,
-                                                @RequestBody TicketResolutionRequest request) {
 
-        Ticket resolvedTicket = ticketService.resolveTicket(ticketId, request);
-        return ResponseEntity.ok(resolvedTicket);
+    // create ticket category
+    @PostMapping("/category/create")
+    public ResponseEntity<?> createTicketCategory(@RequestBody TicketCategoryRequestDto ticketCategoryRequest){
+
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        TicketCategoryResponseDto response = ticketService.createTicketCategory(ticketCategoryRequest, currentUsername);
+
+        return ResponseEntity.ok(response);
     }
 
-    //Endpoint to rate ticket resolution
-    @PostMapping("/{ticketId}/rate")
-    public ResponseEntity<Ticket> rateTicketResolution(@PathVariable Long ticketId,
-                                                       @RequestBody TicketRatingRequest request) {
+    // get tickets by category
+    @GetMapping("/category/{id}")
+    public ResponseEntity<?> getTicketsByCat(@PathVariable Long id){
 
-        Ticket ratedTicket = ticketService.rateTicket(ticketId, request);
-        return ResponseEntity.ok(ratedTicket);
+
+        // get the list of the comments
+        List<Ticket> response = ticketService.getTicketByCategory(id);
+
+
+        // return the response
+        return ResponseEntity.ok(response);
+    }
+
+
+    // create ticket category
+    @PostMapping("/category/{id}/ticket/create")
+    public ResponseEntity<?> createTicket(@PathVariable Long id , @RequestBody TicketRequestDto ticketRequestDto){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // create new ticket
+        TicketResponseDto response = ticketService.createTicket(id, ticketRequestDto, currentUsername);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // delete the ticket rightly
+    @DeleteMapping("/category/ticket/{id}")
+    public ResponseEntity<?> deleteTicket(@PathVariable Long id){
+
+        TicketResponseDto response = ticketService.deleteTicket(id);
+
+        return ResponseEntity.ok(response);
     }
 }
