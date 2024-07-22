@@ -89,7 +89,7 @@ public class TicketController {
 
 
     // create ticket category
-    @PostMapping("/category/{id}/ticket/create")
+    @PostMapping("/category/{id}/ticket/create-ticket")
     public ResponseEntity<?> createTicket(@PathVariable Long id , @RequestBody TicketRequestDto ticketRequestDto){
 
         // get the user from security context
@@ -105,9 +105,9 @@ public class TicketController {
     // delete the ticket rightly
     @DeleteMapping("/category/ticket/{id}")
     public ResponseEntity<?> deleteTicket(@PathVariable Long id){
-
         TicketResponseDto response = ticketService.deleteTicket(id);
-
         return ResponseEntity.ok(response);
     }
+
+
 }
