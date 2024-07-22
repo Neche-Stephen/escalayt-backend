@@ -23,6 +23,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
 
 
     @Bean
@@ -33,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         requests -> requests
                                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/v1/auth/**"),
-                                        antMatcher(HttpMethod.POST, "/api/v1/auth/password_reset"),
+                                        antMatcher(HttpMethod.POST, "/api/v1/auth/password-reset"),
                                         antMatcher(HttpMethod.GET, "/api/v1/auth/**"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui.html"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui/**"),
@@ -42,7 +43,8 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.POST, "/token/**")
                                 ).permitAll()
                                 .requestMatchers("/api/v1/ticket/**").hasAnyAuthority("USER", "ADMIN")
-                                .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ADMIN")
+                                .requestMatchers("/api/v1/users/**").hasAnyAuthority("USER")
                                 .anyRequest().authenticated()
 
                 )
@@ -51,7 +53,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
-                .authenticationProvider(authenticationProvider);
+                .authenticationProvider(authenticationProvider)
+                .formLogin(form -> form
+                        .failureHandler(customAuthenticationFailureHandler));
 
         return security.build();
     }
