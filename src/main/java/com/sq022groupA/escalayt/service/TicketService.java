@@ -7,6 +7,7 @@ import com.sq022groupA.escalayt.entity.model.TicketComment;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
 import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
+import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
 import com.sq022groupA.escalayt.payload.response.TicketInfo;
 import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
 
@@ -19,6 +20,12 @@ public interface TicketService {
 
     // get all the comment made under a particular ticket
     List<TicketComment> getTicketComments(Long ticketId);
+
+
+//    TicketCountResponse getAdminTicketCount(Long adminId);
+//    TicketCountResponse getUserTicketCount(Long adminId);
+
+    TicketCountResponse getTicketCountByUsername(String username);
 
     // create category
 

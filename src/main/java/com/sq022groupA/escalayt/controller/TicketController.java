@@ -8,6 +8,7 @@ import com.sq022groupA.escalayt.entity.model.TicketComment;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
 import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
+import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
 import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
 import com.sq022groupA.escalayt.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +62,20 @@ public class TicketController {
     }
 
 
+    //count tickets
+    @GetMapping("/count")
+    public ResponseEntity<TicketCountResponse> getTicketCount() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        TicketCountResponse response = ticketService.getTicketCountByUsername(currentUsername);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
     // create ticket category
     @PostMapping("/category/create")
     public ResponseEntity<?> createTicketCategory(@RequestBody TicketCategoryRequestDto ticketCategoryRequest){
@@ -89,7 +104,7 @@ public class TicketController {
 
 
     // create ticket category
-    @PostMapping("/category/{id}/ticket/create")
+    @PostMapping("/category/{id}/ticket/create-ticket")
     public ResponseEntity<?> createTicket(@PathVariable Long id , @RequestBody TicketRequestDto ticketRequestDto){
 
         // get the user from security context
@@ -105,9 +120,7 @@ public class TicketController {
     // delete the ticket rightly
     @DeleteMapping("/category/ticket/{id}")
     public ResponseEntity<?> deleteTicket(@PathVariable Long id){
-
         TicketResponseDto response = ticketService.deleteTicket(id);
-
         return ResponseEntity.ok(response);
     }
 
@@ -136,4 +149,6 @@ public class TicketController {
         Ticket resolvedTicket = ticketService.resolveTicket(ticketId, resolutionRequest);
         return ResponseEntity.ok(resolvedTicket);
     }
+
+
 }
