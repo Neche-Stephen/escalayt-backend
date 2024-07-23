@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -254,6 +256,24 @@ public class TickerServiceImpl implements TicketService {
         ticket.setUpdatedAt(LocalDateTime.now());
 
         return ticketRepository.save(ticket);
+    }
+
+    @Override
+    public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Pageable pageable) {
+        // Retrieve all tickets from the repository, ordered by creation date in descending order
+        return ticketRepository.findAllByOrderByCreatedAtDesc(pageable)
+                // Map each Ticket entity to a TicketActivitiesResponseDto object
+                .map(ticket -> new TicketActivitiesResponseDto(
+                        ticket.getId(),
+                        ticket.getTitle(),
+                        ticket.getPriority().toString(),
+                        ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() : null,
+                        ticket.getStatus().toString(),
+                        ticket.getTicketCategory().getName(),
+                        ticket.getCreatedAt(),
+                        ticket.getLocation()
+
+                ));
     }
 
 }

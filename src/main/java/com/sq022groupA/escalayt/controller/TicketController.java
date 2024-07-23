@@ -6,12 +6,12 @@ import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
 import com.sq022groupA.escalayt.payload.request.*;
-import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
-import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
-import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
-import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
+import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -150,5 +150,20 @@ public class TicketController {
         return ResponseEntity.ok(resolvedTicket);
     }
 
+    //Get all recent activities
+    @GetMapping("/all-recent-activities")
+    public ResponseEntity<Page<TicketActivitiesResponseDto>> listAllRecentTicketActivities(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size){
+
+        // Create a pageable object with the requested page number and size
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Get a page of recent ticket activities from the ticket service
+        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(pageable);
+
+        // Return the recent tickets wrapped in a ResponseEntity with an OK status
+        return ResponseEntity.ok(recentTickets);
+    }
 
 }

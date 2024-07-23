@@ -6,6 +6,8 @@ import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -42,5 +44,8 @@ public interface TicketService {
     Ticket getTicketById(Long ticketId);
 
     Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
+
+    //List all recent ticket activities
+    Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Pageable pageable);
 
 }
