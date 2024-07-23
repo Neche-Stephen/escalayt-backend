@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -51,12 +52,15 @@ public class Admin implements UserDetails {
 
 
     @OneToMany(mappedBy = "createdByAdmin")
+    @JsonManagedReference
     private List<Ticket> createdTickets;
 
     @OneToMany(mappedBy = "resolvedByAdmin")
+    @JsonManagedReference
     private List<Ticket> resolvedTickets;
 
     @OneToMany(mappedBy = "createdBy")
+    @JsonManagedReference
     private List<TicketCategory> ticketCategories;
 
 

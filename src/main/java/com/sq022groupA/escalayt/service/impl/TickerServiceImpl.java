@@ -180,4 +180,10 @@ public class TickerServiceImpl implements TicketService {
                 .ticketInfo(null)
                 .build();
     }
+
+    // Method to get the latest or recent open tickets
+    @Override
+    public List<Ticket> getLatestThreeOpenTickets() {
+        return ticketRepository.findTop3ByStatusOrderByCreatedAtDesc(Status.OPEN);
+    }
 }

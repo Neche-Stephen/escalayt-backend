@@ -33,5 +33,6 @@ public interface TicketService {
     // delete ticket
     TicketResponseDto deleteTicket(Long ticketId);
 
-
+    // Method to get the latest or recent open tickets
+    List<Ticket> getLatestThreeOpenTickets();
 }

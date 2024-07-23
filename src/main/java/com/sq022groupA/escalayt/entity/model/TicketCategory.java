@@ -57,11 +57,13 @@ Create Ticket Category
     private Long createdUnder;
 
     @OneToMany(mappedBy = "ticketCategory")
+    @JsonManagedReference
     private List<Ticket> tickets;
 
     // ticket category
     @ManyToOne
     @JoinColumn(name = "createdBy_id")
+    @JsonBackReference
     private Admin createdBy;
 
 

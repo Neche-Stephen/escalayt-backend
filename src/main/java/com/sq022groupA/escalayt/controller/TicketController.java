@@ -109,5 +109,12 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // Endpoint to get the latest 3 open tickets
+    @GetMapping("/admin/open-tickets")
+    public ResponseEntity<?> getLatestThreeOpenTickets() {
+        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets();
+        return ResponseEntity.ok(openTickets);
+    }
+
 
 }
