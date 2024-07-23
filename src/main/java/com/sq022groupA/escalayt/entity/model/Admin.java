@@ -56,6 +56,9 @@ public class Admin implements UserDetails {
     @OneToMany(mappedBy = "resolvedByAdmin")
     private List<Ticket> resolvedTickets;
 
+    @OneToMany(mappedBy = "createdBy")
+    private List<TicketCategory> ticketCategories;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
