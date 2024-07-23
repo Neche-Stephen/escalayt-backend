@@ -1,51 +1,37 @@
 package com.sq022groupA.escalayt.service.impl;
 
-import com.sq022groupA.escalayt.entity.enums.Status;
-import com.sq022groupA.escalayt.entity.model.Admin;
-import com.sq022groupA.escalayt.entity.model.Ticket;
-import com.sq022groupA.escalayt.entity.model.TicketComment;
-import com.sq022groupA.escalayt.entity.model.User;
+import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.exception.DoesNotExistException;
+import com.sq022groupA.escalayt.exception.TicketNotFoundException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
-import com.sq022groupA.escalayt.payload.request.TicketCategoryRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
-import com.sq022groupA.escalayt.payload.response.TicketCommentInfo;
-import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
-import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
-import com.sq022groupA.escalayt.repository.AdminRepository;
-import com.sq022groupA.escalayt.repository.TicketCommentRepository;
-import com.sq022groupA.escalayt.repository.TicketRepository;
-import com.sq022groupA.escalayt.repository.UserRepository;
-import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
+import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.service.TicketService;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class TickerServiceImpl implements TicketService {
 
     private final UserRepository userRepository;
-
     private final TicketRepository ticketRepository;
-
     private final TicketCommentRepository ticketCommentRepository;
-
     private final TicketCategoryRepository ticketCategoryRepository;
-
     private final AdminRepository adminRepository;
 
 
 
     @Override
     public TicketCommentResponse createTicketComment(TicketCommentRequestDto commentRequestDto, Long ticketId, String commenter) {
-        // check if user exist
+        // check if user exists
         User commentingUser = userRepository.findByUsername(commenter).orElse(null);
         if(commentingUser == null){
 
@@ -243,4 +229,31 @@ public class TickerServiceImpl implements TicketService {
                 .ticketInfo(null)
                 .build();
     }
+
+    public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
+        return ticketRepository.findTicketsByFilters(priority, status, assigneeId, categoryId);
+    }
+
+    public Ticket getTicketById(Long ticketId) {
+        return ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
+    }
+
+    public Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        if (resolutionRequest.getResolvedByUser() != null) {
+            ticket.setResolvedByUser(resolutionRequest.getResolvedByUser());
+        }
+        if (resolutionRequest.getResolvedByAdmin() != null) {
+            ticket.setResolvedByAdmin(resolutionRequest.getResolvedByAdmin());
+        }
+
+        ticket.setStatus(Status.RESOLVE);
+        ticket.setUpdatedAt(LocalDateTime.now());
+
+        return ticketRepository.save(ticket);
+    }
+
 }

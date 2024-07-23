@@ -1,11 +1,11 @@
 package com.sq022groupA.escalayt.controller;
 
 
+import com.sq022groupA.escalayt.entity.enums.Priority;
+import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
-import com.sq022groupA.escalayt.payload.request.TicketCategoryRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
+import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
 import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
 import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
@@ -122,6 +122,32 @@ public class TicketController {
     public ResponseEntity<?> deleteTicket(@PathVariable Long id){
         TicketResponseDto response = ticketService.deleteTicket(id);
         return ResponseEntity.ok(response);
+    }
+
+    // filter ticket
+    @GetMapping("/filter")
+    public ResponseEntity<List<Ticket>> filterTickets(@RequestParam(required = false) Priority priority,
+                                                      @RequestParam(required = false) Status status,
+                                                      @RequestParam(required = false) Long assigneeId,
+                                                      @RequestParam(required = false) Long categoryId) {
+
+        List<Ticket> tickets = ticketService.filterTickets(priority, status, assigneeId, categoryId);
+        return ResponseEntity.ok(tickets);
+    }
+
+    // preview a ticket
+    @GetMapping("/preview-ticket/{ticketId}")
+    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
+        Ticket ticket = ticketService.getTicketById(ticketId);
+        return ResponseEntity.ok(ticket);
+    }
+
+    @PostMapping("/{ticketId}/resolve")
+    public ResponseEntity<Ticket> resolveTicket(@PathVariable Long ticketId,
+            @RequestBody TicketResolutionRequest resolutionRequest) {
+
+        Ticket resolvedTicket = ticketService.resolveTicket(ticketId, resolutionRequest);
+        return ResponseEntity.ok(resolvedTicket);
     }
 
 
