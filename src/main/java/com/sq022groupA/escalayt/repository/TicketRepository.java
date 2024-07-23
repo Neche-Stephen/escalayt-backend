@@ -35,6 +35,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     Long countAllTicketsUnderAdminAndStatus(Long adminId, Status status);
 
     //retrieve tickets in descending order
-    Page<Ticket> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<Ticket> findAllByOrderByUpdatedAtDesc(Pageable pageable);
 
 }

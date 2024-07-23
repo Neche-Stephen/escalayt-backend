@@ -261,7 +261,7 @@ public class TickerServiceImpl implements TicketService {
     @Override
     public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Pageable pageable) {
         // Retrieve all tickets from the repository, ordered by creation date in descending order
-        return ticketRepository.findAllByOrderByCreatedAtDesc(pageable)
+        return ticketRepository.findAllByOrderByUpdatedAtDesc(pageable)
                 // Map each Ticket entity to a TicketActivitiesResponseDto object
                 .map(ticket -> new TicketActivitiesResponseDto(
                         ticket.getId(),
