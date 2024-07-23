@@ -1,6 +1,8 @@
 package com.sq022groupA.escalayt.entity.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import lombok.*;
@@ -73,6 +75,7 @@ public class User extends BaseClass implements UserDetails {
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("user")
     private List<JwtToken> jtokens;
 
 

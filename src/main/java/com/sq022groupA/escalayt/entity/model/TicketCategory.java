@@ -2,6 +2,7 @@ package com.sq022groupA.escalayt.entity.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -58,6 +59,7 @@ Create Ticket Category
 
     @OneToMany(mappedBy = "ticketCategory")
     @JsonManagedReference
+    @JsonIgnoreProperties("ticketCategory")
     private List<Ticket> tickets;
 
     // ticket category
@@ -65,6 +67,5 @@ Create Ticket Category
     @JoinColumn(name = "createdBy_id")
     @JsonBackReference
     private Admin createdBy;
-
 
 }

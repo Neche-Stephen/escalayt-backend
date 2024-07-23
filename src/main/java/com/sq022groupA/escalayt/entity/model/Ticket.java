@@ -3,6 +3,8 @@ package com.sq022groupA.escalayt.entity.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sq022groupA.escalayt.entity.enums.Category;
 import com.sq022groupA.escalayt.entity.enums.Priority;
@@ -61,6 +63,10 @@ public class Ticket extends BaseClass{
     private Admin resolvedByAdmin;
 
 
+    private int rating;
+
+    // review for the ticket rating
+    private String review;
 
 
     // map category
@@ -72,6 +78,7 @@ public class Ticket extends BaseClass{
     // mapped ticket comment here
     @OneToMany(mappedBy = "ticket")
     @JsonManagedReference
+    @JsonIgnoreProperties("ticket")
     private List<TicketComment> ticketComments;
 
 

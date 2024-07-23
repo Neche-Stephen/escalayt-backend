@@ -56,7 +56,7 @@ public class AuthController {
 
     }
 
-    @PostMapping("/login")
+    @PostMapping("/login-admin")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequestDto loginRequestDto){
 
         try{
