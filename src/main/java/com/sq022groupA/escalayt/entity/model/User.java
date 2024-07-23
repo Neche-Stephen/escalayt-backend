@@ -63,6 +63,11 @@ public class User extends BaseClass implements UserDetails {
     )
     private Set<Role> roles;
 
+    //a relationship between the employees and admin
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<JwtToken> jtokens;

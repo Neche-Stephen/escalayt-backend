@@ -8,6 +8,7 @@ import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
 import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
 import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
 import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
+import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
 import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
 import com.sq022groupA.escalayt.service.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +60,20 @@ public class TicketController {
 
         return ResponseEntity.ok(ticketCommentResponse);
     }
+
+
+    //count tickets
+    @GetMapping("/count")
+    public ResponseEntity<TicketCountResponse> getTicketCount() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        TicketCountResponse response = ticketService.getTicketCountByUsername(currentUsername);
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
     // create ticket category
