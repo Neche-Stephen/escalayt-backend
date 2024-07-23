@@ -256,4 +256,15 @@ public class TickerServiceImpl implements TicketService {
         return ticketRepository.save(ticket);
     }
 
+    @Override
+    public Ticket rateTicket(Long ticketId, TicketRatingRequest ratingRequest) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        ticket.setRating(ratingRequest.getRating());
+        ticket.setReview(ratingRequest.getReview());
+
+        return ticketRepository.save(ticket);
+    }
+
 }

@@ -43,4 +43,6 @@ public interface TicketService {
 
     Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
 
+    Ticket rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
+
 }
