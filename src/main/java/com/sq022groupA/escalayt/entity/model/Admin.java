@@ -72,6 +72,11 @@ public class Admin implements UserDetails {
     )
     private Set<Role> roles;
 
+    // to establish a relationship btw the admin and user
+    @OneToMany(mappedBy = "admin")
+    private List<User> users;
+
+
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
     private List<JwtToken> jtokens;
