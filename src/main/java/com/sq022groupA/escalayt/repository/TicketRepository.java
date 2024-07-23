@@ -16,7 +16,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             "(:priority is null or t.priority = :priority) and " +
             "(:status is null or t.status = :status) and " +
             "(:assigneeId is null or t.createdByUser.id = :assigneeId or t.createdByAdmin.id = :assigneeId) and " +
-            "(:category is null or t.category = :category)")
-    List<Ticket> findByFilters(@Param("priority") Priority priority, @Param("status") Status status,
-                               @Param("assigneeId") Long assigneeId, @Param("category") Category category);
+            "(:categoryId is null or t.ticketCategory.id = :categoryId)")
+    List<Ticket> findTicketsByFilters(@Param("priority") Priority priority, @Param("status") Status status,
+                               @Param("assigneeId") Long assigneeId, @Param("categoryId") Long categoryId);
 }

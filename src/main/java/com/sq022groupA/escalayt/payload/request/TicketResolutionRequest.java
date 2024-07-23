@@ -9,4 +9,5 @@ public class TicketResolutionRequest {
 
     private User resolvedByUser;
     private Admin resolvedByAdmin;
+
 }

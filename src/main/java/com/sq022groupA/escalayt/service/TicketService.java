@@ -1,10 +1,10 @@
 package com.sq022groupA.escalayt.service;
 
+import com.sq022groupA.escalayt.entity.enums.Priority;
+import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
-import com.sq022groupA.escalayt.payload.request.TicketCategoryRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
+import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
 import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
 import com.sq022groupA.escalayt.payload.response.TicketInfo;
@@ -33,5 +33,11 @@ public interface TicketService {
     // delete ticket
     TicketResponseDto deleteTicket(Long ticketId);
 
+    // filter ticket
+    List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId);
+
+    Ticket getTicketById(Long ticketId);
+
+    Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
 
 }
