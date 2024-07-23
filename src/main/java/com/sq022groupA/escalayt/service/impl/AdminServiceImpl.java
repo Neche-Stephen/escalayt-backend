@@ -2,6 +2,7 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
+import com.sq022groupA.escalayt.exception.CustomException;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
@@ -17,11 +18,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -103,31 +108,40 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequestDto.getUsername(),
-                        loginRequestDto.getPassword()
-                )
-        );
-        Admin admin = adminRepository.findByUsername(loginRequestDto.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found with username: " + loginRequestDto.getUsername()));
 
-        if (!admin.isEnabled()) {
-            throw new RuntimeException("User account is not enabled. Please check your email to confirm your account.");
+        try{
+            Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                            loginRequestDto.getUsername(),
+                                            loginRequestDto.getPassword()));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            Admin admin = adminRepository.findByUsername(loginRequestDto.getUsername())
+                    .orElseThrow(() -> new CustomException("User not found with username: " + loginRequestDto.getUsername()));
+
+
+            if (!admin.isEnabled()) {
+                throw new CustomException("User account is not enabled. Please check your email to confirm your account.");
+            }
+
+            var jwtToken = jwtService.generateToken(admin);
+            revokeAllUserTokens(admin);
+            saveUserToken(admin, jwtToken);
+
+            return LoginResponse.builder()
+                    .responseCode("002")
+                    .responseMessage("Login Successfully")
+                    .loginInfo(LoginInfo.builder()
+                            .username(admin.getUsername())
+                            .token(jwtToken)
+                            .build())
+                    .build();
+
+        }catch (AuthenticationException e) {
+            throw new CustomException("Invalid username or password!!", e);
         }
 
-        var jwtToken = jwtService.generateToken(admin);
-        revokeAllUserTokens(admin);
-        saveUserToken(admin, jwtToken);
-
-        return LoginResponse.builder()
-                .responseCode("002")
-                .responseMessage("Login Successfully")
-                .loginInfo(LoginInfo.builder()
-                        .username(admin.getUsername())
-                        .token(jwtToken)
-                        .build())
-                .build();
     }
 
     private void saveUserToken(Admin userModel, String jwtToken) {
@@ -199,55 +213,113 @@ public class AdminServiceImpl implements AdminService {
         return "User details updated successfully";
     }
 
+//    @Override
+//    public String forgotPassword(ForgetPasswordDto forgetPasswordDto) {
+//
+//
+//        /*
+//        steps
+//        1- check if email exist (settled)
+//        2- create a random token (done)
+//        3- Hash the token and add it to the db under the user (done)
+//        4- set expiration time for the token in the db (done)
+//        5- generate a reset url using the token (done)
+//        6- send email with reset url link
+//         */
+//
+//        Optional<Admin> checkUser = adminRepository.findByEmail(forgetPasswordDto.getEmail());
+//
+//        // check if user exist with that email
+//        if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
+//
+//        Admin forgettingUser = checkUser.get();
+//
+//        // generate a hashed token
+//        ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);
+//
+//        // saved the token.
+//        // the token has an expiration date
+//        confirmationTokenRepository.save(forgetPassWordToken);
+//        // System.out.println("the token "+forgetPassWordToken.getToken());
+//
+//        // generate a password reset url
+//        String resetPasswordUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + forgetPassWordToken.getToken();
+//
+//
+//
+//        // click this link to reset password;
+//        EmailDetails emailDetails = EmailDetails.builder()
+//                .recipient(forgettingUser.getEmail())
+//                .subject("FORGET PASSWORD")
+//                .messageBody(ForgetPasswordEmailBody.buildEmail(forgettingUser.getFirstName(),
+//                        forgettingUser.getLastName(), resetPasswordUrl))
+//                .build();
+//
+//        //send the reset password link
+//        emailService.mimeMailMessage(emailDetails);
+//
+//        return "A reset password link has been sent to your account." + resetPasswordUrl;
+//    }
+
     @Override
-    public String forgotPassword(ForgetPasswordDto forgetPasswordDto) {
+    public String forgotPassword(String email) {
 
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Admin not found"));
 
-        /*
-        steps
-        1- check if email exist (settled)
-        2- create a random token (done)
-        3- Hash the token and add it to the db under the user (done)
-        4- set expiration time for the token in the db (done)
-        5- generate a reset url using the token (done)
-        6- send email with reset url link
-         */
+        String token = UUID.randomUUID().toString();
+        admin.setResetToken(token);
+        admin.setTokenCreationDate(LocalDateTime.now());
+        adminRepository.save(admin);
 
-        Optional<Admin> checkUser = adminRepository.findByEmail(forgetPasswordDto.getEmail());
-
-        // check if user exist with that email
-        if(!checkUser.isPresent()) throw new RuntimeException("No such user with this email.");
-
-        Admin forgettingUser = checkUser.get();
-
-        // generate a hashed token
-        ConfirmationToken forgetPassWordToken = new ConfirmationToken(forgettingUser);
-
-        // saved the token.
-        // the token has an expiration date
-        confirmationTokenRepository.save(forgetPassWordToken);
-        // System.out.println("the token "+forgetPassWordToken.getToken());
-
-        // generate a password reset url
-        String resetPasswordUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + forgetPassWordToken.getToken();
-
-
+        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
-                .recipient(forgettingUser.getEmail())
+                .recipient(admin.getEmail())
                 .subject("FORGET PASSWORD")
-                .messageBody(ForgetPasswordEmailBody.buildEmail(forgettingUser.getFirstName(),
-                        forgettingUser.getLastName(), resetPasswordUrl))
+                .messageBody(ForgetPasswordEmailBody.buildEmail(admin.getLastName(), admin.getFirstName(), resetUrl ))
                 .build();
 
         //send the reset password link
         emailService.mimeMailMessage(emailDetails);
 
-        return "A reset password link has been sent to your account." + resetPasswordUrl;
+        return "A reset password link has been sent to your account email address:          " + resetUrl;
     }
 
+    public boolean existsByEmail(String email) {
+        return adminRepository.existsByEmail(email);
+    }
 
+    public Admin findByResetToken(String token) {
+        return adminRepository.findByResetToken(token).orElse(null);
+    }
+
+    public void updatePassword(String currentUsername, String newPassword) {
+
+        // GET ADMIN ID BY USERNAME
+        Optional<Admin> currentAdmin = adminRepository.findByUsername(currentUsername);
+
+        // Check if admin is present
+        if (currentAdmin.isEmpty()) {
+            throw new RuntimeException("Admin user not found");
+        }
+
+        Admin admin = currentAdmin.get();
+
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminRepository.save(admin);
+    }
+
+    @Override
+    public String createToken(Admin admin) {
+
+        var jwtToken = jwtService.generateToken(admin);
+        revokeAllUserTokens(admin);
+        saveUserToken(admin, jwtToken);
+
+        return jwtToken;
+    }
 
 
     /////------ USER/EMPLOYEE RELATED SERVICE IMPLEMENTATIONS -----\\\\\
