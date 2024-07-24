@@ -151,11 +151,11 @@ public class TicketController {
     }
 
     @PostMapping("/{ticketId}/rate")
-    public ResponseEntity<Ticket> rateTicket(@PathVariable Long ticketId,
+    public ResponseEntity<?> rateTicket(@PathVariable Long ticketId,
                                              @RequestBody TicketRatingRequest ratingRequest) {
 
-        Ticket ratedTicket = ticketService.rateTicket(ticketId, ratingRequest);
-        return ResponseEntity.ok(ratedTicket);
+        ticketService.rateTicket(ticketId, ratingRequest);
+        return ResponseEntity.ok().build();
     }
 
 }
