@@ -284,7 +284,15 @@ public class TickerServiceImpl implements TicketService {
         ));
     }
 
+    @Override
+    public Admin getAdminId(String username) {
+        return adminRepository.findByUsername(username).orElse(null);
+    }
 
+    @Override
+    public User getUserId(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
 
 
 }
