@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -61,6 +62,7 @@ public class Admin implements UserDetails {
     private List<Ticket> resolvedTickets;
 
     @OneToMany(mappedBy = "createdBy")
+    @JsonManagedReference
     @JsonIgnoreProperties("createdBy")
     private List<TicketCategory> ticketCategories;
 
