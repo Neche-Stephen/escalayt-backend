@@ -42,7 +42,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponse loginUser(LoginRequestDto loginRequestDto) {
 
+
         try{
+
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
