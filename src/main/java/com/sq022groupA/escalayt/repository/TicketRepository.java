@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
-    List<Ticket> findTop3ByStatusOrderByCreatedAtDesc(Status status);
+    List<Ticket> findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status status, Long userId);
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByAdmin.id = :adminId")
     Long countTicketsByAdmin(Long adminId);

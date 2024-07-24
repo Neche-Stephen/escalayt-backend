@@ -232,8 +232,14 @@ public class TickerServiceImpl implements TicketService {
 
     // Method to get the latest or recent open tickets
     @Override
-    public List<Ticket> getLatestThreeOpenTickets() {
-        return ticketRepository.findTop3ByStatusOrderByCreatedAtDesc(Status.OPEN);
+    public List<Ticket> getLatestThreeOpenTickets(String userName) {
+
+        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+
+        if(admin == null){
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
     }
 
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
