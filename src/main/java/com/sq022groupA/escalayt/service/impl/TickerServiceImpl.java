@@ -12,11 +12,13 @@ import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.service.TicketService;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -259,38 +261,30 @@ public class TickerServiceImpl implements TicketService {
     }
 
     @Override
-    public Page<TicketActivitiesResponseDto> listAllRecentTicketActivitiesForAdmin(Long admin_id, Pageable pageable) {
-        Page<Ticket> ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(admin_id, pageable);
+    public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable) {
+      Page<Ticket> ticketsPage;
+
+      if("ADMIN".equals(role)){
+          ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+      } else if("USER".equals(role)){
+          ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+      } else {
+          throw new IllegalArgumentException("Invalid role: " + role);
+      }
 
         return ticketsPage.map(ticket -> new TicketActivitiesResponseDto(
                 ticket.getId(),
                 ticket.getTitle(),
                 ticket.getPriority().toString(),
-                ticket.getAssignee() !=null ? ticket.getAssignee().getFullName() :null,
-                ticket.getStatus().toString(),
-                ticket.getTicketCategory().getName(),
-                ticket.getCreatedAt(),
-                ticket.getLocation()
-
-
-        ));
-    }
-
-    @Override
-    public Page<TicketActivitiesResponseDto> listAllRecentTicketActivitiesForUser(Long user_id, Pageable pageable) {
-        Page<Ticket> ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(user_id, pageable);
-
-        return ticketsPage.map(ticket -> new TicketActivitiesResponseDto(
-                ticket.getId(),
-                ticket.getTitle(),
-                ticket.getPriority().toString(),
-                ticket.getAssignee() != null ? ticket.getAssignee().getFullName() :null,
+                ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null,
                 ticket.getStatus().toString(),
                 ticket.getTicketCategory().getName(),
                 ticket.getCreatedAt(),
                 ticket.getLocation()
         ));
     }
+
+
 
 
 }

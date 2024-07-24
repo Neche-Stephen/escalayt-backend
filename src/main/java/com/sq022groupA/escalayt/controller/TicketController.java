@@ -14,7 +14,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -150,32 +152,17 @@ public class TicketController {
         return ResponseEntity.ok(resolvedTicket);
     }
 
-    //Get all recent activities
-    @GetMapping("/admin/all-recent-activities")
-    public ResponseEntity<Page<TicketActivitiesResponseDto>> listAllRecentTicketActivitiesForAdmin(
-            @RequestParam(value = "admin_id") Long admin_id,
+    //endpoint to get all recent activities
+    @GetMapping("/all-recent-activities")
+    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(
+            @RequestParam(value ="id") Long id,
+            @RequestParam(value ="role") String role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size){
 
-        // Create a pageable object with the requested page number and size
         Pageable pageable = PageRequest.of(page, size);
-
-        // Get a page of recent ticket activities from the ticket service
-        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivitiesForAdmin(admin_id, pageable);
-
-        // Return the recent tickets wrapped in a ResponseEntity with an OK status
+        //Get the authorities (roles) of the current user
+        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
         return ResponseEntity.ok(recentTickets);
     }
-
-    @GetMapping("/user/all-recent-activities")
-    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivitiesForUser(
-            @RequestParam(value="user_id") Long user_id,
-            @RequestParam(defaultValue = "0")int page,
-            @RequestParam(defaultValue = "7") int size){
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivitiesForUser(user_id, pageable);
-        return ResponseEntity.ok(recentTickets);
-    }
-
 }
