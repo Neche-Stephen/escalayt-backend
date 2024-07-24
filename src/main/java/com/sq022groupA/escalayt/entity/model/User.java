@@ -59,6 +59,9 @@ public class User extends BaseClass implements UserDetails {
     @JsonManagedReference
     private List<Ticket> resolvedTickets;
 
+    @OneToMany(mappedBy = "commenter")
+    @JsonManagedReference
+    private List<TicketComment> comments;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

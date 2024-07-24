@@ -78,7 +78,7 @@ public class Ticket extends BaseClass{
     // mapped ticket comment here
     @OneToMany(mappedBy = "ticket")
     @JsonManagedReference
-    @JsonIgnoreProperties("ticket")
+//    @JsonIgnoreProperties("ticket")
     private List<TicketComment> ticketComments;
 
 
