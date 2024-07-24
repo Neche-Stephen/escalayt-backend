@@ -164,6 +164,13 @@ public class TicketController {
         return ResponseEntity.ok(resolvedTicket);
     }
 
+    @PostMapping("/{ticketId}/rate")
+    public ResponseEntity<?> rateTicket(@PathVariable Long ticketId,
+                                             @RequestBody TicketRatingRequest ratingRequest) {
+
+        ticketService.rateTicket(ticketId, ratingRequest);
+        return ResponseEntity.ok().build();
+    }
 //    //endpoint to get all recent activities
 //    @GetMapping("/all-recent-activities")
 //    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(

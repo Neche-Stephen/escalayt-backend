@@ -51,6 +51,8 @@ public interface TicketService {
 
     Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
 
+    void rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
+
     //List all recent ticket activities
     Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable);
 

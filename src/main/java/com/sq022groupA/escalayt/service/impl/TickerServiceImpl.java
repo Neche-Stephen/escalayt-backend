@@ -273,6 +273,17 @@ public class TickerServiceImpl implements TicketService {
     }
 
     @Override
+    public void rateTicket(Long ticketId, TicketRatingRequest ratingRequest) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        ticket.setRating(ratingRequest.getRating());
+        ticket.setReview(ratingRequest.getReview());
+
+        ticketRepository.save(ticket);
+    }
+
+    @Override
     public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable) {
       Page<Ticket> ticketsPage;
 
