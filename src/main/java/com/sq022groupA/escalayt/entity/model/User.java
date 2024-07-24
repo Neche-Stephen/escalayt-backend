@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -58,6 +59,9 @@ public class User extends BaseClass implements UserDetails {
     @JsonManagedReference
     private List<Ticket> resolvedTickets;
 
+    @OneToMany(mappedBy = "commenter")
+    @JsonManagedReference
+    private List<TicketComment> comments;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

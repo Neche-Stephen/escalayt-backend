@@ -124,6 +124,16 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // Endpoint to get the latest 3 open tickets for only admin
+    @GetMapping("/admin/open-tickets")
+    public ResponseEntity<?> getLatestThreeOpenTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        return ResponseEntity.ok(openTickets);
+    }
+
     // filter ticket
     @GetMapping("/filter")
     public ResponseEntity<List<Ticket>> filterTickets(@RequestParam(required = false) Priority priority,
