@@ -3,6 +3,8 @@ package com.sq022groupA.escalayt.repository;
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,5 +38,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE (t.createdByAdmin.id = :adminId OR t.createdByUser.createdUnder = :adminId) AND t.status = :status")
     Long countAllTicketsUnderAdminAndStatus(Long adminId, Status status);
+
+    //query tickets based on the admin ID stored in createdUnder field
+
+    Page<Ticket> findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(Long createdUnder, Pageable pageable);
+
+    //query tickets based on the user ID stored in createdByUser field
+    Page<Ticket> findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(Long userid, Pageable pageable);
 
 }

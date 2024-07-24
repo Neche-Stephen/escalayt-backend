@@ -2,11 +2,17 @@ package com.sq022groupA.escalayt.service;
 
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
+import com.sq022groupA.escalayt.entity.model.Admin;
 import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
+import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface TicketService {
@@ -44,5 +50,13 @@ public interface TicketService {
     Ticket getTicketById(Long ticketId);
 
     Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
+
+    //List all recent ticket activities
+    Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable);
+
+    Admin getAdminId(String username);
+    User getUserId(String username);
+
+
 
 }
