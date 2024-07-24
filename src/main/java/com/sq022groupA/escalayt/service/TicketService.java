@@ -46,6 +46,8 @@ public interface TicketService {
     Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
 
     //List all recent ticket activities
-    Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Pageable pageable);
+    Page<TicketActivitiesResponseDto> listAllRecentTicketActivitiesForAdmin(Long admin_id, Pageable pageable);
+    Page<TicketActivitiesResponseDto> listAllRecentTicketActivitiesForUser(Long user_id, Pageable pageable);
+
 
 }

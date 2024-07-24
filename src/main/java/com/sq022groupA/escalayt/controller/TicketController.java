@@ -151,8 +151,9 @@ public class TicketController {
     }
 
     //Get all recent activities
-    @GetMapping("/all-recent-activities")
-    public ResponseEntity<Page<TicketActivitiesResponseDto>> listAllRecentTicketActivities(
+    @GetMapping("/admin/all-recent-activities")
+    public ResponseEntity<Page<TicketActivitiesResponseDto>> listAllRecentTicketActivitiesForAdmin(
+            @RequestParam(value = "admin_id") Long admin_id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "7") int size){
 
@@ -160,9 +161,20 @@ public class TicketController {
         Pageable pageable = PageRequest.of(page, size);
 
         // Get a page of recent ticket activities from the ticket service
-        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(pageable);
+        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivitiesForAdmin(admin_id, pageable);
 
         // Return the recent tickets wrapped in a ResponseEntity with an OK status
+        return ResponseEntity.ok(recentTickets);
+    }
+
+    @GetMapping("/user/all-recent-activities")
+    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivitiesForUser(
+            @RequestParam(value="user_id") Long user_id,
+            @RequestParam(defaultValue = "0")int page,
+            @RequestParam(defaultValue = "7") int size){
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivitiesForUser(user_id, pageable);
         return ResponseEntity.ok(recentTickets);
     }
 

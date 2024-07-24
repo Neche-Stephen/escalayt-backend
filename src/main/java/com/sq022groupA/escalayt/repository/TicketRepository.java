@@ -34,7 +34,11 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT COUNT(t) FROM Ticket t WHERE (t.createdByAdmin.id = :adminId OR t.createdByUser.createdUnder = :adminId) AND t.status = :status")
     Long countAllTicketsUnderAdminAndStatus(Long adminId, Status status);
 
-    //retrieve tickets in descending order
-    Page<Ticket> findAllByOrderByUpdatedAtDesc(Pageable pageable);
+    //query tickets based on the admin ID stored in createdUnder field
+
+    Page<Ticket> findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(Long createdUnder, Pageable pageable);
+
+    //query tickets based on the user ID stored in createdByUser field
+    Page<Ticket> findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(Long userid, Pageable pageable);
 
 }
