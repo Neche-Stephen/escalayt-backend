@@ -58,6 +58,7 @@ Create Ticket Category
     private Long createdUnder;
 
     @OneToMany(mappedBy = "ticketCategory")
+    @JsonManagedReference
     @JsonIgnoreProperties("ticketCategory")
     private List<Ticket> tickets;
 

@@ -3,6 +3,7 @@ package com.sq022groupA.escalayt.entity.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sq022groupA.escalayt.entity.enums.Category;
@@ -71,12 +72,19 @@ public class Ticket extends BaseClass{
     // map category
     @ManyToOne
     @JoinColumn(name = "ticket_category_id")
+    @JsonBackReference
     private TicketCategory ticketCategory;
 
     // mapped ticket comment here
     @OneToMany(mappedBy = "ticket")
-    @JsonIgnoreProperties("ticket")
+    @JsonManagedReference
+//    @JsonIgnoreProperties("ticket")
     private List<TicketComment> ticketComments;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "assignee_user_id", foreignKey = @ForeignKey(name = "FK_ticket_assignee_user"))
+    @JsonManagedReference
+    private User assignee;
 
 
 }
