@@ -23,7 +23,4 @@ public class UserRegistrationDto {
 
     @NotBlank(message = "Department is required")
     private String department;
-
-    private String username;
-    private String password;
 }

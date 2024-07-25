@@ -16,9 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,20 +28,10 @@ public class TicketController {
 
     private final TicketService ticketService;
 
-
-    @GetMapping("/get")
-    public String helloWorld(){
-        return "Hello World!!!";
-    }
-
-
     @GetMapping("/category/ticket/{id}/get-comments")
     public ResponseEntity<?> ticketComment(@PathVariable Long id){
-
-
         // get the list of the comments
         List<TicketComment> response = ticketService.getTicketComments(id);
-
 
         // return the response
         return ResponseEntity.ok(response);
@@ -60,8 +48,6 @@ public class TicketController {
 
         // update the db and return response
         TicketCommentResponse ticketCommentResponse = ticketService.createTicketComment(ticketCommentRequestDto, id, currentUsername);
-
-
         return ResponseEntity.ok(ticketCommentResponse);
     }
 
@@ -74,7 +60,6 @@ public class TicketController {
         String currentUsername = authentication.getName();
 
         TicketCountResponse response = ticketService.getTicketCountByUsername(currentUsername);
-
         return ResponseEntity.ok(response);
     }
 
@@ -97,10 +82,8 @@ public class TicketController {
     @GetMapping("/category/{id}")
     public ResponseEntity<?> getTicketsByCat(@PathVariable Long id){
 
-
         // get the list of the comments
         List<Ticket> response = ticketService.getTicketByCategory(id);
-
 
         // return the response
         return ResponseEntity.ok(response);
@@ -156,13 +139,19 @@ public class TicketController {
         return ResponseEntity.ok(ticket);
     }
 
-    @PostMapping("/{ticketId}/resolve")
-    public ResponseEntity<Ticket> resolveTicket(@PathVariable Long ticketId,
-            @RequestBody TicketResolutionRequest resolutionRequest) {
 
-        Ticket resolvedTicket = ticketService.resolveTicket(ticketId, resolutionRequest);
-        return ResponseEntity.ok(resolvedTicket);
+    @PostMapping("/{ticketId}/resolve")
+    public ResponseEntity<String> resolveTicket(@PathVariable Long ticketId) {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Resolve the ticket using the service
+        ticketService.resolveTicket(ticketId, currentUsername);
+
+        return ResponseEntity.ok("Ticket resolved successfully");
     }
+
 
     @PostMapping("/{ticketId}/rate")
     public ResponseEntity<?> rateTicket(@PathVariable Long ticketId,
@@ -171,19 +160,6 @@ public class TicketController {
         ticketService.rateTicket(ticketId, ratingRequest);
         return ResponseEntity.ok().build();
     }
-//    //endpoint to get all recent activities
-//    @GetMapping("/all-recent-activities")
-//    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(
-//            @RequestParam(value ="id") Long id,
-//            @RequestParam(value ="role") String role,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "7") int size){
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//        //Get the authorities (roles) of the current user
-//        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
-//        return ResponseEntity.ok(recentTickets);
-//    }
 
     //endpoint to get all recent activities
     @GetMapping("/all-recent-activities")

@@ -10,9 +10,7 @@ import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface TicketService {
@@ -49,7 +47,7 @@ public interface TicketService {
 
     Ticket getTicketById(Long ticketId);
 
-    Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
+    void resolveTicket(Long ticketId, String username);
 
     void rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
 
