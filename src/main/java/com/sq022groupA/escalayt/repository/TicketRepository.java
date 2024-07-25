@@ -18,6 +18,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByAdmin.id = :adminId")
     Long countTicketsByAdmin(Long adminId);
 
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByAdmin.id = :adminId AND t.status = :status")
+    Long countTicketsByAdminIdAndStatus(@Param("adminId") Long adminId, @Param("status") Status status);
     @Query("SELECT t from Ticket t WHERE " +
             "(:priority is null or t.priority = :priority) and " +
             "(:status is null or t.status = :status) and " +
@@ -31,11 +33,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     Long countTicketsByUser(Long userId);
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByUser.id = :userId AND t.status = :status")
-    Long countTicketsByUserAndStatus(Long userId, Status status);
+    Long countTicketsByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Status status);
 
-    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByAdmin.id = :adminId OR t.createdByUser.createdUnder = :adminId")
-    Long countAllTicketsUnderAdmin(Long adminId);
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByAdmin.id = :adminId")
+    Long countTotalTicketsByAdminId(@Param("adminId") Long adminId);
 
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByUser.id = :userId")
+    Long countTotalTicketsByUserId(@Param("userId") Long userId);
     @Query("SELECT COUNT(t) FROM Ticket t WHERE (t.createdByAdmin.id = :adminId OR t.createdByUser.createdUnder = :adminId) AND t.status = :status")
     Long countAllTicketsUnderAdminAndStatus(Long adminId, Status status);
 

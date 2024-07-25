@@ -16,10 +16,12 @@ import java.util.Collection;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @RequiredArgsConstructor
 @Service
@@ -81,7 +83,6 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
-
     @Override
     public TicketCountResponse getTicketCountByUsername(String username) {
         System.out.println("serviceImpl username is " + username);
@@ -94,19 +95,18 @@ public class TickerServiceImpl implements TicketService {
         }
 
         if (admin != null) {
-            // If the user is an admin, get the ticket count for admin
             return getAdminTicketCount(admin.getId());
         } else {
-            // If the user is a regular user, get the ticket count for the user
             return getUserTicketCount(user.getId());
         }
     }
 
     private TicketCountResponse getAdminTicketCount(Long adminId) {
-        Long totalTickets = ticketRepository.countAllTicketsUnderAdmin(adminId);
-        Long openTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.OPEN);
-        Long inProgressTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVE);
+        Long totalTickets = ticketRepository.countTotalTicketsByAdminId(adminId);
+        Long openTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.OPEN);
+        Long inProgressTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.IN_PROGRESS);
+        Long resolvedTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.RESOLVE);
+
 
         return TicketCountResponse.builder()
                 .totalTickets(totalTickets)
@@ -117,10 +117,10 @@ public class TickerServiceImpl implements TicketService {
     }
 
     private TicketCountResponse getUserTicketCount(Long userId) {
-        Long totalTickets = ticketRepository.countTicketsByUser(userId);
-        Long openTickets = ticketRepository.countTicketsByUserAndStatus(userId, Status.OPEN);
-        Long inProgressTickets = ticketRepository.countTicketsByUserAndStatus(userId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countTicketsByUserAndStatus(userId, Status.RESOLVE);
+        Long totalTickets = ticketRepository.countTotalTicketsByUserId(userId);
+        Long openTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.OPEN);
+        Long inProgressTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.IN_PROGRESS);
+        Long resolvedTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.RESOLVE);
 
         return TicketCountResponse.builder()
                 .totalTickets(totalTickets)
@@ -129,6 +129,7 @@ public class TickerServiceImpl implements TicketService {
                 .resolvedTickets(resolvedTickets)
                 .build();
     }
+
 
 
     @Override
