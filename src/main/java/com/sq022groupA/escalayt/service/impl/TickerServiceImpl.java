@@ -256,21 +256,26 @@ public class TickerServiceImpl implements TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
     }
 
-    public Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest) {
+    public void resolveTicket(Long ticketId, String username) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
-        if (resolutionRequest.getResolvedByUser() != null) {
-            ticket.setResolvedByUser(resolutionRequest.getResolvedByUser());
-        }
-        if (resolutionRequest.getResolvedByAdmin() != null) {
-            ticket.setResolvedByAdmin(resolutionRequest.getResolvedByAdmin());
+        // Get the user or admin based on the username
+        User user = userRepository.findByUsername(username).orElse(null);
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (admin != null) {
+            ticket.setResolvedByAdmin(admin);
+        } else if (user != null) {
+            ticket.setResolvedByUser(user);
+        } else {
+            throw new UserNotFoundException("User not found");
         }
 
         ticket.setStatus(Status.RESOLVE);
         ticket.setUpdatedAt(LocalDateTime.now());
 
-        return ticketRepository.save(ticket);
+        ticketRepository.save(ticket);
     }
 
     @Override
