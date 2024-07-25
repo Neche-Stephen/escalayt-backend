@@ -1,20 +1,24 @@
 package com.sq022groupA.escalayt.controller;
 
 
+import com.sq022groupA.escalayt.entity.enums.Priority;
+import com.sq022groupA.escalayt.entity.enums.Status;
+import com.sq022groupA.escalayt.entity.model.Admin;
 import com.sq022groupA.escalayt.entity.model.Ticket;
 import com.sq022groupA.escalayt.entity.model.TicketComment;
-import com.sq022groupA.escalayt.payload.request.TicketCategoryRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketCommentRequestDto;
-import com.sq022groupA.escalayt.payload.request.TicketRequestDto;
-import com.sq022groupA.escalayt.payload.response.TicketCategoryResponseDto;
-import com.sq022groupA.escalayt.payload.response.TicketCommentResponse;
-import com.sq022groupA.escalayt.payload.response.TicketCountResponse;
-import com.sq022groupA.escalayt.payload.response.TicketResponseDto;
+import com.sq022groupA.escalayt.entity.model.User;
+import com.sq022groupA.escalayt.payload.request.*;
+import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -124,5 +128,90 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // Endpoint to get the latest 3 open tickets for only admin
+    @GetMapping("/admin/open-tickets")
+    public ResponseEntity<?> getLatestThreeOpenTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
 
+        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        return ResponseEntity.ok(openTickets);
+    }
+
+    // filter ticket
+    @GetMapping("/filter")
+    public ResponseEntity<List<Ticket>> filterTickets(@RequestParam(required = false) Priority priority,
+                                                      @RequestParam(required = false) Status status,
+                                                      @RequestParam(required = false) Long assigneeId,
+                                                      @RequestParam(required = false) Long categoryId) {
+
+        List<Ticket> tickets = ticketService.filterTickets(priority, status, assigneeId, categoryId);
+        return ResponseEntity.ok(tickets);
+    }
+
+    // preview a ticket
+    @GetMapping("/preview-ticket/{ticketId}")
+    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
+        Ticket ticket = ticketService.getTicketById(ticketId);
+        return ResponseEntity.ok(ticket);
+    }
+
+    @PostMapping("/{ticketId}/resolve")
+    public ResponseEntity<Ticket> resolveTicket(@PathVariable Long ticketId,
+            @RequestBody TicketResolutionRequest resolutionRequest) {
+
+        Ticket resolvedTicket = ticketService.resolveTicket(ticketId, resolutionRequest);
+        return ResponseEntity.ok(resolvedTicket);
+    }
+
+    @PostMapping("/{ticketId}/rate")
+    public ResponseEntity<?> rateTicket(@PathVariable Long ticketId,
+                                             @RequestBody TicketRatingRequest ratingRequest) {
+
+        ticketService.rateTicket(ticketId, ratingRequest);
+        return ResponseEntity.ok().build();
+    }
+//    //endpoint to get all recent activities
+//    @GetMapping("/all-recent-activities")
+//    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(
+//            @RequestParam(value ="id") Long id,
+//            @RequestParam(value ="role") String role,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "7") int size){
+//
+//        Pageable pageable = PageRequest.of(page, size);
+//        //Get the authorities (roles) of the current user
+//        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
+//        return ResponseEntity.ok(recentTickets);
+//    }
+
+    //endpoint to get all recent activities
+    @GetMapping("/all-recent-activities")
+    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(
+            @RequestParam(defaultValue = "0") int page){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        String role = "";
+        Long id = null;
+
+        Admin admin = ticketService.getAdminId(currentUsername);
+        User user = ticketService.getUserId(currentUsername);
+
+        if(admin != null ){
+            role = "ADMIN";
+            id = admin.getId();
+        }else{
+            role = "USER";
+            id = user.getId();
+        }
+
+        Pageable pageable = PageRequest.of(page, 7);
+        //Get the authorities (roles) of the current user
+        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
+
+        return ResponseEntity.ok(recentTickets);
+    }
 }

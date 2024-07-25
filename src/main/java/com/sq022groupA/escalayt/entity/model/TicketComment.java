@@ -1,6 +1,7 @@
 package com.sq022groupA.escalayt.entity.model;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -44,10 +45,12 @@ public class TicketComment extends BaseClass{
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
+    @JsonBackReference
     private Ticket ticket;
 
     @ManyToOne
     @JoinColumn(name = "commenter_id")
+    @JsonBackReference
     private User commenter;
 
 }
