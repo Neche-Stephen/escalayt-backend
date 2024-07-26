@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TicketRequestDto {
 
-
     private String title;
 
     private String location;
@@ -21,10 +20,5 @@ public class TicketRequestDto {
     private Priority priority;
 
     private String description;
-
-    private Status status;
-
-    private Long createdUnder;
-
 
 }
