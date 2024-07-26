@@ -66,6 +66,12 @@ public class Admin implements UserDetails {
     @JsonIgnoreProperties("createdBy")
     private List<TicketCategory> ticketCategories;
 
+    // the mapping the department
+    @OneToMany(mappedBy = "departmentCreatedBy")
+    @JsonManagedReference
+    @JsonIgnoreProperties("departmentCreatedBy")
+    private List<Department> departmentList;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
