@@ -71,5 +71,8 @@ public interface TicketService {
     // get ticket category by name
     List<String> getCategoryName(String username);
 
+    // get all tickets
+    List<TicketResponse> getAllTicket(String username,int page, int size);
+
 
 }
