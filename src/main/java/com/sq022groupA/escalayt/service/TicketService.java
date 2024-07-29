@@ -57,6 +57,7 @@ public interface TicketService {
     Admin getAdminId(String username);
     User getUserId(String username);
 
-
+    // get ticket category by name
+    List<String> getCategoryName(String username);
 
 }
