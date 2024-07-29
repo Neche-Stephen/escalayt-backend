@@ -14,6 +14,7 @@ import com.sq022groupA.escalayt.service.TicketService;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -235,17 +236,55 @@ public class TickerServiceImpl implements TicketService {
                 .build();
     }
 
-    // Method to get the latest or recent open tickets
     @Override
-    public List<Ticket> getLatestThreeOpenTickets(String userName) {
-
+    public List<TicketDto> getLatestThreeOpenTickets(String userName) {
         Admin admin = adminRepository.findByUsername(userName).orElse(null);
 
-        if(admin == null){
+        if (admin == null) {
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
-        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+
+        return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
+
+    private TicketDto mapToDto(Ticket ticket) {
+        return TicketDto.builder()
+                .id(ticket.getId())
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .title(ticket.getTitle())
+                .location(ticket.getLocation())
+                .priority(ticket.getPriority())
+                .description(ticket.getDescription())
+                .createdByUser(ticket.getCreatedByUser() != null ? ticket.getCreatedByUser().getFullName() : null)
+                .createdByAdmin(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getFirstName() + " " + ticket.getCreatedByAdmin().getLastName() : null)
+                .resolvedByUser(ticket.getResolvedByUser() != null ? ticket.getResolvedByUser().getFullName() : null)
+                .resolvedByAdmin(ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() + " " + ticket.getResolvedByAdmin().getLastName() : null)
+                .createdUnder(ticket.getCreatedUnder())
+                .status(ticket.getStatus())
+                .rating(ticket.getRating())
+                .review(ticket.getReview())
+                .ticketComments(ticket.getTicketComments())
+                .assignee(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
+                .build();
+    }
+
+    // Method to get the latest or recent open tickets
+//    @Override
+//    public List<Ticket> getLatestThreeOpenTickets(String userName) {
+//
+//        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+//
+//        if(admin == null){
+//            throw new UserNotFoundException("You do not have proper authorization to make this action");
+//        }
+//        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+//    }
+
+
+
 
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
         return ticketRepository.findTicketsByFilters(priority, status, assigneeId, categoryId);

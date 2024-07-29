@@ -117,7 +117,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        List<TicketDto> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
         return ResponseEntity.ok(openTickets);
     }
 

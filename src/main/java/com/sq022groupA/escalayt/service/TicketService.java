@@ -41,7 +41,7 @@ public interface TicketService {
     TicketResponseDto deleteTicket(Long ticketId);
 
     // Method to get the latest or recent open tickets
-    List<Ticket> getLatestThreeOpenTickets(String userName);
+    List<TicketDto> getLatestThreeOpenTickets(String userName);
     // filter ticket
     List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId);
 
