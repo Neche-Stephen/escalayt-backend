@@ -199,4 +199,11 @@ public class TicketController {
 
         return ResponseEntity.ok(recentTickets);
     }
+
+    @PutMapping("/assign-ticket/{id}")
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+
+        String response = ticketService.assignTicket(id, assignId);
+        return ResponseEntity.ok(response);
+    }
 }
