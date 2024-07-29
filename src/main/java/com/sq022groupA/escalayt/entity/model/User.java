@@ -40,7 +40,7 @@ public class User extends BaseClass implements UserDetails {
 
     private String jobTitle;
 
-    private String department;
+    //private String department;
 
     private Long createdUnder; // Id of the Admin
 
@@ -75,6 +75,12 @@ public class User extends BaseClass implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "admin_id")
     private Admin admin;
+
+
+    // mapped user to department
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department employeeDepartment;
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
