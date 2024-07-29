@@ -148,6 +148,18 @@ public class TicketController {
         return ResponseEntity.ok(ticket);
     }
 
+    // view all tickets
+    @GetMapping("/view-all-tickets")
+    public List<TicketResponse> viewAllTickets(@RequestParam(defaultValue = "0") int page){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        int size = 14;
+
+        return ticketService.getAllTicket(currentUsername, page, size);
+    }
+
 
     @PostMapping("/{ticketId}/resolve")
     public ResponseEntity<String> resolveTicket(@PathVariable Long ticketId) {

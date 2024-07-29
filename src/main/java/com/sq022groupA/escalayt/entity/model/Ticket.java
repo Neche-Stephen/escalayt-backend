@@ -67,7 +67,7 @@ public class Ticket extends BaseClass{
 
 
     // map category
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ticket_category_id")
     @JsonBackReference("ticketCategory")
     private TicketCategory ticketCategory;

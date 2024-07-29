@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -185,6 +186,45 @@ public class TickerServiceImpl implements TicketService {
 
         return categories.stream().map(TicketCategory::getName).collect(Collectors.toList());
     }
+
+    @Override
+    public List<TicketResponse> getAllTicket(String username, int page, int size) {
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        Pageable pageable = PageRequest.of(page, size);
+        List<Ticket> ticketList;
+
+        if(admin != null){
+            ticketList = ticketRepository.findByCreatedUnder(admin.getId(), pageable);
+        }else {
+            assert user != null;
+            ticketList = ticketRepository.findByCreatedByUserId(user.getId(), pageable);
+        }
+
+        return ticketList.stream().map(ticket -> {
+
+            TicketResponse ticketResponse = new TicketResponse();
+            ticketResponse.setId(ticket.getId());
+            ticketResponse.setCreatedAt(ticket.getCreatedAt());
+            ticketResponse.setUpdatedAt(ticket.getUpdatedAt());
+            ticketResponse.setTitle(ticket.getTitle());
+            ticketResponse.setLocation(ticket.getLocation());
+            ticketResponse.setPriority(ticket.getPriority().toString());
+            ticketResponse.setDescription(ticket.getDescription());
+            ticketResponse.setCreatedUnder(ticket.getCreatedUnder());
+            ticketResponse.setStatus(ticket.getStatus().toString());
+            ticketResponse.setRating(ticket.getRating());
+            ticketResponse.setReview(ticket.getReview());
+            ticketResponse.setTicketCategoryId(ticket.getTicketCategory().getId());
+            ticketResponse.setTicketCategoryName(ticket.getTicketCategory().getName());
+            if (ticket.getAssignee() != null) {
+                ticketResponse.setAssigneeFullName(ticket.getAssignee().getFullName());
+            }
+            return ticketResponse;
+        }).collect(Collectors.toList());
+    }
+
 
     @Override
     public TicketResponseDto createTicket(Long catId, TicketRequestDto ticketRequest, String username) {

@@ -12,7 +12,7 @@ public interface DepartmentService {
     String createDepartment(DepartmentRequestDto requestDto, String username);
 
     // get all department
-    List<Department> getAllDepartment(String username);
+    List<String> getAllDepartment(String username);
 
     List<User> getAllUserUnderDepartment(Long departmentId);
 
