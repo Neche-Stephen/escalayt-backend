@@ -2,13 +2,11 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
-import com.sq022groupA.escalayt.exception.CustomException;
+import com.sq022groupA.escalayt.exception.*;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
-import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
-import com.sq022groupA.escalayt.exception.UserNotFoundException;
-import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
+import com.sq022groupA.escalayt.service.DepartmentService;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
@@ -43,6 +41,8 @@ public class AdminServiceImpl implements AdminService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+
+    private final DepartmentRepository departmentRepository;
 
 
     @Value("${baseUrl}")
@@ -272,7 +272,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setTokenCreationDate(LocalDateTime.now());
         adminRepository.save(admin);
 
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetUrl = "http://localhost:8080/api/v1/auth/confirm-reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
@@ -327,13 +327,19 @@ public class AdminServiceImpl implements AdminService {
 
     // USER/EMPLOYEE REGISTRATION
     @Override
-    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException {
+    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto, Long departmentId) throws MessagingException {
         // GET ADMIN ID BY USERNAME
         Optional<Admin> loggedInAdmin = adminRepository.findByUsername(currentUsername);
 
         // Check if admin is present
         if (loggedInAdmin.isEmpty()) {
             throw new RuntimeException("Admin user not found");
+        }
+
+        Department currentDepartment = departmentRepository.findById(departmentId).orElse(null);
+
+        if(currentDepartment == null){
+            throw new DoesNotExistException("Department does not exist");
         }
 
         // Check if the user email already exists
@@ -360,7 +366,8 @@ public class AdminServiceImpl implements AdminService {
                 .email(userRegistrationDto.getEmail())
                 .phoneNumber(userRegistrationDto.getPhoneNumber())
                 .jobTitle(userRegistrationDto.getJobTitle())
-                .department(userRegistrationDto.getDepartment())
+                //.department(userRegistrationDto.getDepartment())
+                .employeeDepartment(currentDepartment)
                 .username(generatedUsername)
                 .password(passwordEncoder.encode(generatedPassword))
                 .createdUnder(loggedInAdmin.get().getId())
@@ -394,7 +401,7 @@ public class AdminServiceImpl implements AdminService {
                 .email(savedUser.getEmail())
                 .phoneNumber(savedUser.getPhoneNumber())
                 .jobTitle(savedUser.getJobTitle())
-                .department(savedUser.getDepartment())
+                //.department(savedUser.getDepartment())
                 .createdUnder(savedUser.getCreatedUnder())
                 .build();
     }
