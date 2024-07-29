@@ -89,6 +89,15 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // get category name
+    @GetMapping("/category/name")
+    public List<String> getCategoryName(){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ticketService.getCategoryName(currentUsername);
+    }
+
 
     // create ticket category
     @PostMapping("/category/{id}/ticket/create-ticket")

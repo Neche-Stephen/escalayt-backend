@@ -59,7 +59,8 @@ public interface TicketService {
 
     User getUserId(String username);
 
-
+    // get ticket category by name
+    List<String> getCategoryName(String username);
 
 
 
