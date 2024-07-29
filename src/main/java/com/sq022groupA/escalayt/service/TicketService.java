@@ -59,6 +59,10 @@ public interface TicketService {
 
     User getUserId(String username);
 
+    // assign a ticket
+
+    String assignTicket(Long ticketId, Long assignId);
+
 
 
 

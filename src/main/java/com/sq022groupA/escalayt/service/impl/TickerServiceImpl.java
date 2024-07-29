@@ -324,5 +324,28 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+    // assign ticket to assignee
+    @Override
+    public String assignTicket(Long ticketId, Long assignId) {
+        User userAssigned = userRepository.findById(assignId).orElse(null);
+
+
+        if(userAssigned == null){
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        ticket.setAssignee(userAssigned);
+
+        ticketRepository.save(ticket);
+
+        return "Ticket Assign successful";
+
+    }
+
+
 
 }
