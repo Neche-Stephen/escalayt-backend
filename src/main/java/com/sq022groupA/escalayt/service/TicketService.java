@@ -55,7 +55,11 @@ public interface TicketService {
     Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable);
 
     Admin getAdminId(String username);
+
+
     User getUserId(String username);
+
+
 
 
 
