@@ -89,6 +89,15 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // get category name
+    @GetMapping("/category/name")
+    public List<String> getCategoryName(){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ticketService.getCategoryName(currentUsername);
+    }
+
 
     // create ticket category
     @PostMapping("/category/{id}/ticket/create-ticket")
@@ -189,5 +198,12 @@ public class TicketController {
         Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
 
         return ResponseEntity.ok(recentTickets);
+    }
+
+    @PutMapping("/assign-ticket/{id}")
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+
+        String response = ticketService.assignTicket(id, assignId);
+        return ResponseEntity.ok(response);
     }
 }

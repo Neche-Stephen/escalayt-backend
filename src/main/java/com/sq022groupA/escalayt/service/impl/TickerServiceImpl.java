@@ -171,6 +171,21 @@ public class TickerServiceImpl implements TicketService {
         return ticketCategory.getTickets() ;
     }
 
+    public List<String> getCategoryName(String username){
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+        List<TicketCategory> categories;
+        if(admin != null){
+            categories = ticketCategoryRepository.findByCreatedUnder(admin.getId());
+        }else {
+            assert user != null;
+            categories = ticketCategoryRepository.findByCreatedUnder(user.getCreatedUnder());
+        }
+
+        return categories.stream().map(TicketCategory::getName).collect(Collectors.toList());
+    }
+
     @Override
     public TicketResponseDto createTicket(Long catId, TicketRequestDto ticketRequest, String username) {
 
@@ -361,6 +376,30 @@ public class TickerServiceImpl implements TicketService {
     public User getUserId(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
+
+
+    // assign ticket to assignee
+    @Override
+    public String assignTicket(Long ticketId, Long assignId) {
+        User userAssigned = userRepository.findById(assignId).orElse(null);
+
+
+        if(userAssigned == null){
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+        ticket.setAssignee(userAssigned);
+
+        ticketRepository.save(ticket);
+
+        return "Ticket Assign successful";
+
+    }
+
 
 
 }

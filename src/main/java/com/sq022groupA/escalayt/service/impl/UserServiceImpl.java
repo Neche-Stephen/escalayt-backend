@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
         user.setTokenCreationDate(LocalDateTime.now());
         userRepository.save(user);
 
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetUrl = "http://localhost:8080/api/v1/auth/confirm-reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
@@ -156,5 +156,8 @@ public class UserServiceImpl implements UserService {
 
         return jwtToken;
     }
+
+
+
 
 }

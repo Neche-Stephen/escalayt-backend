@@ -66,6 +66,12 @@ public class Admin implements UserDetails {
     @JsonIgnoreProperties("createdBy")
     private List<TicketCategory> ticketCategories;
 
+    // the mapping the department
+    @OneToMany(mappedBy = "departmentCreatedBy")
+    @JsonManagedReference
+    @JsonIgnoreProperties("departmentCreatedBy")
+    private List<Department> departmentList;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -109,3 +115,14 @@ public class Admin implements UserDetails {
         return enabled;
     };
 }
+
+/*
+
+Extra task:
+[11:01 pm] Chinecherem Ubawike
+Alright can you do that?
+It should take the id of the ticket and and id of the user to be assigned?
+then update the ticket by updating the assignee column with the id of the user
+
+
+ */
