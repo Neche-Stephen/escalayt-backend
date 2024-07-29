@@ -14,6 +14,7 @@ import com.sq022groupA.escalayt.service.TicketService;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -168,6 +169,21 @@ public class TickerServiceImpl implements TicketService {
         }
 
         return ticketCategory.getTickets() ;
+    }
+
+    public List<String> getCategoryName(String username){
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+        List<TicketCategory> categories;
+        if(admin != null){
+            categories = ticketCategoryRepository.findByCreatedUnder(admin.getId());
+        }else {
+            assert user != null;
+            categories = ticketCategoryRepository.findByCreatedUnder(user.getCreatedUnder());
+        }
+
+        return categories.stream().map(TicketCategory::getName).collect(Collectors.toList());
     }
 
     @Override
