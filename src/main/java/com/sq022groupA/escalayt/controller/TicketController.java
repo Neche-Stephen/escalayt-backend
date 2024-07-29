@@ -126,7 +126,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        List<TicketDto> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
         return ResponseEntity.ok(openTickets);
     }
 
@@ -210,5 +210,12 @@ public class TicketController {
         Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
 
         return ResponseEntity.ok(recentTickets);
+    }
+
+    @PutMapping("/assign-ticket/{id}")
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+
+        String response = ticketService.assignTicket(id, assignId);
+        return ResponseEntity.ok(response);
     }
 }
