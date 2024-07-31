@@ -51,6 +51,18 @@ public class TicketController {
         return ResponseEntity.ok(ticketCommentResponse);
     }
 
+    // reply a comment
+    @PostMapping("/{ticketId}/comment/{commentId}/reply")
+    public ResponseEntity<?> replyToComment(@PathVariable Long ticketId, @PathVariable Long commentId, @RequestBody TicketCommentReply replyDto) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Process the reply and return the response
+        TicketCommentResponse response = ticketService.replyToComment(replyDto, ticketId, commentId, currentUsername);
+        return ResponseEntity.ok(response);
+    }
+
 
     //count tickets
     @GetMapping("/count")
