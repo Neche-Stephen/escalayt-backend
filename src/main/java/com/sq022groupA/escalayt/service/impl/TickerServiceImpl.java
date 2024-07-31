@@ -413,6 +413,55 @@ public class TickerServiceImpl implements TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
     }
 
+    public TicketDTOs getTicketByIds(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(
+                () -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
+
+        AssigneeDTO assigneeDTO = null;
+
+        if (ticket.getAssignee() != null) {
+            assigneeDTO = AssigneeDTO.builder()
+                    .fullName(ticket.getAssignee().getFullName())
+                    .email(ticket.getAssignee().getEmail())
+                    .jobTitle(ticket.getAssignee().getJobTitle())
+                    .phoneNumber(ticket.getAssignee().getPhoneNumber())
+                    .build();
+        }
+
+        CreatedByUserDTO createdByUserDTO = null;
+        if (ticket.getCreatedByUser() != null) {
+            createdByUserDTO = CreatedByUserDTO.builder()
+                    .fullName(ticket.getCreatedByUser().getFullName())
+                    .email(ticket.getCreatedByUser().getEmail())
+                    .jobTitle(ticket.getCreatedByUser().getJobTitle())
+                    .department(ticket.getCreatedByUser().getEmployeeDepartment() != null ? ticket.getCreatedByUser().getEmployeeDepartment().getDepartment() : null)
+                    .phoneNumber(ticket.getCreatedByUser().getPhoneNumber())
+                    .build();
+        }
+
+        return TicketDTOs.builder()
+                .id(ticket.getId())
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .title(ticket.getTitle())
+                .location(ticket.getLocation())
+                .priority(ticket.getPriority().name())
+                .description(ticket.getDescription())
+                .createdUnder(ticket.getCreatedUnder())
+                .status(ticket.getStatus().name())
+                .rating(ticket.getRating())
+                .review(ticket.getReview())
+                .ticketComments(ticket.getTicketComments().stream().map(TicketComment::getComment).collect(Collectors.toList()))
+                .assignee(assigneeDTO)
+                .ticketCategoryName(ticket.getTicketCategory().getName())
+                .createdByUserId(ticket.getCreatedByUser() != null ? ticket.getCreatedByUser().getId() : null)
+                .createdByAdminId(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : null)
+                .createdByUser(createdByUserDTO)
+                .build();
+    }
+
+
+
     public void resolveTicket(Long ticketId, String username) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));

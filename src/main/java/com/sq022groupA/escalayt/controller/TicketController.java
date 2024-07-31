@@ -177,10 +177,16 @@ public class TicketController {
 
 
     // preview a ticket
+//    @GetMapping("/preview-ticket/{ticketId}")
+//    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
+//        Ticket ticket = ticketService.getTicketById(ticketId);
+//        return ResponseEntity.ok(ticket);
+//    }
+
     @GetMapping("/preview-ticket/{ticketId}")
-    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        return ResponseEntity.ok(ticket);
+    public ResponseEntity<TicketDTOs> previewTicket(@PathVariable Long ticketId) {
+        TicketDTOs ticketDTO = ticketService.getTicketByIds(ticketId);
+        return ResponseEntity.ok(ticketDTO);
     }
 
     // view all tickets
