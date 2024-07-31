@@ -91,5 +91,7 @@ public interface TicketService {
     // get all tickets by created under
     List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long adminId);
 
+    TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId, Long commentId, String commenterUsername);
 
+    List<TicketCommentResponse> getCommentReplies(Long commentId, String username);
 }

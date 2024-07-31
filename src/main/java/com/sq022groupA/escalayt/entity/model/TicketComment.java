@@ -57,4 +57,8 @@ public class TicketComment extends BaseClass{
     @JoinColumn(name = "admin_commenter_id")
     private Admin adminCommenter;
 
+    @ManyToOne
+    @JoinColumn(name = "parent_comment_id")
+    private TicketComment parentComment;
+
 }

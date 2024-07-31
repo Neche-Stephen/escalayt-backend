@@ -89,6 +89,83 @@ public class TickerServiceImpl implements TicketService {
         return ticketRepository.findById(ticketId).get().getTicketComments();
     }
 
+    public TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId,
+                                                Long commentId, String commenterUsername) {
+
+        // Check if user exists
+        User commentingUser = userRepository.findByUsername(commenterUsername).orElse(null);
+
+        // Get admin
+        Admin commentingAdmin = adminRepository.findByUsername(commenterUsername).orElse(null);
+
+        if (commentingUser == null && commentingAdmin == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        // Check if the ticket to be commented on exists
+        Ticket commentingTicket = ticketRepository.findById(ticketId).orElse(null);
+        if (commentingTicket == null) {
+            throw new DoesNotExistException("Ticket does not exist");
+        }
+
+        // Check if the parent comment exists
+        TicketComment parentComment = ticketCommentRepository.findById(commentId).orElse(null);
+        if (parentComment == null) {
+            throw new DoesNotExistException("Parent comment does not exist");
+        }
+
+        // Create and save the reply comment
+        TicketComment replyComment = TicketComment.builder()
+                .ticket(commentingTicket)
+                .comment(replyDto.getComment())
+                .commenter(commentingUser)
+                .adminCommenter(commentingAdmin)
+                .parentComment(parentComment)
+                .build();
+
+        ticketCommentRepository.save(replyComment);
+
+        // Return response
+        assert commentingUser != null;
+        return TicketCommentResponse.builder()
+                .responseCode("200")
+                .responseMessage("Comment replied successfully")
+                .ticketCommentInfo(TicketCommentInfo.builder()
+                        .createdAt(replyComment.getCreatedAt())
+                        .ticketTitle(replyComment.getTicket().getTitle())
+                        .comment(replyDto.getComment())
+                        .commenter(commentingUser.getFullName())
+                        .build())
+                .build();
+    }
+
+
+    public List<TicketCommentResponse> getCommentReplies(Long commentId, String username) {
+
+        // Check if user exists
+        User commentingUser = userRepository.findByUsername(username).orElse(null);
+
+        // Get admin
+        Admin commentingAdmin = adminRepository.findByUsername(username).orElse(null);
+        if (commentingUser == null && commentingAdmin == null) {
+            throw new UserNotFoundException("User Not found");
+        }
+
+        // Fetch the replies
+        List<TicketComment> replies = ticketCommentRepository.findByParentCommentId(commentId);
+
+        // Convert the replies to response DTOs
+        return replies.stream().map(reply -> TicketCommentResponse.builder()
+                .responseCode("200")
+                .responseMessage("Reply fetched")
+                .ticketCommentInfo(TicketCommentInfo.builder()
+                        .createdAt(reply.getCreatedAt())
+                        .ticketTitle(reply.getTicket().getTitle())
+                        .comment(reply.getComment())
+                        .build())
+                .build()).collect(Collectors.toList());
+    }
+
 
     @Override
     public TicketCountResponse getTicketCountByUsername(String username) {
