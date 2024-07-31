@@ -304,6 +304,32 @@ public class TickerServiceImpl implements TicketService {
         return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
+    @Override
+    public List<TicketDto> getLatestThreeResolvedTickets(String userName) {
+        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+
+        if (admin == null) {
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVE, admin.getId());
+
+        return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TicketDto> getLatestThreeInprogressTickets(String userName) {
+        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+
+        if (admin == null) {
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+        List<Ticket> inprogresTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.IN_PROGRESS, admin.getId());
+
+        return inprogresTickets.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
     private TicketDto mapToDto(Ticket ticket) {
         return TicketDto.builder()
                 .id(ticket.getId())
@@ -344,6 +370,41 @@ public class TickerServiceImpl implements TicketService {
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
         return ticketRepository.findTicketsByFilters(priority, status, assigneeId, categoryId);
     }
+
+    public Page<TicketResponse> filterTicketsWithPagination(
+            List<Priority> priority,
+            List<Status> status,
+            List<Long> assigneeIds,
+            List<Long> categoryIds,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Ticket> ticketPage = ticketRepository.findTicketsByFilters(priority, status, assigneeIds, categoryIds, pageable);
+
+        return ticketPage.map(ticket -> {
+            TicketResponse ticketResponse = new TicketResponse();
+            ticketResponse.setId(ticket.getId());
+            ticketResponse.setCreatedAt(ticket.getCreatedAt());
+            ticketResponse.setUpdatedAt(ticket.getUpdatedAt());
+            ticketResponse.setTitle(ticket.getTitle());
+            ticketResponse.setLocation(ticket.getLocation());
+            ticketResponse.setPriority(ticket.getPriority().toString());
+            ticketResponse.setDescription(ticket.getDescription());
+            ticketResponse.setCreatedUnder(ticket.getCreatedUnder());
+            ticketResponse.setStatus(ticket.getStatus().toString());
+            ticketResponse.setRating(ticket.getRating());
+            ticketResponse.setReview(ticket.getReview());
+            ticketResponse.setTicketCategoryId(ticket.getTicketCategory().getId());
+            ticketResponse.setTicketCategoryName(ticket.getTicketCategory().getName());
+            if (ticket.getAssignee() != null) {
+                ticketResponse.setAssigneeFullName(ticket.getAssignee().getFullName());
+            }
+            return ticketResponse;
+        });
+    }
+
 
     public Ticket getTicketById(Long ticketId) {
         return ticketRepository.findById(ticketId)
