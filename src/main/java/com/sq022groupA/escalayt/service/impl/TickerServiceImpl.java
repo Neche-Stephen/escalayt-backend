@@ -41,8 +41,10 @@ public class TickerServiceImpl implements TicketService {
     public TicketCommentResponse createTicketComment(TicketCommentRequestDto commentRequestDto, Long ticketId, String commenter) {
         // check if user exists
         User commentingUser = userRepository.findByUsername(commenter).orElse(null);
-        if(commentingUser == null){
 
+        // get admin
+        Admin commentingAdmin = adminRepository.findByUsername(commenter).orElse(null);
+        if(commentingUser == null && commentingAdmin == null){
             throw new UserNotFoundException("User Not found");
         }
 
@@ -58,6 +60,7 @@ public class TickerServiceImpl implements TicketService {
                 .ticket(commentingTicket)
                 .comment(commentRequestDto.getComment())
                 .commenter(commentingUser)
+                .adminCommenter(commentingAdmin)
                 .build());
 
         return TicketCommentResponse.builder()
@@ -65,7 +68,6 @@ public class TickerServiceImpl implements TicketService {
                 .responseMessage("ticket commented")
                 .ticketCommentInfo(TicketCommentInfo.builder()
                         .createdAt(ticketComment.getCreatedAt())
-                        .commenter(ticketComment.getCommenter().getUsername())
                         .ticketTitle(ticketComment.getTicket().getTitle())
                         .build())
                 .build();
