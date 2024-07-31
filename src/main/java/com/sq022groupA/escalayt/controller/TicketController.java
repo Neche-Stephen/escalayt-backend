@@ -63,6 +63,19 @@ public class TicketController {
         return ResponseEntity.ok(response);
     }
 
+    // get all replies to a comment
+    @GetMapping("/comment/{commentId}/replies")
+    public ResponseEntity<List<TicketCommentResponse>> getCommentReplies(@PathVariable Long commentId) {
+
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Fetch the replies and return the response
+        List<TicketCommentResponse> replies = ticketService.getCommentReplies(commentId, currentUsername);
+        return ResponseEntity.ok(replies);
+    }
+
 
     //count tickets
     @GetMapping("/count")

@@ -137,6 +137,33 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+    public List<TicketCommentResponse> getCommentReplies(Long commentId, String username) {
+
+        // Check if user exists
+        User commentingUser = userRepository.findByUsername(username).orElse(null);
+
+        // Get admin
+        Admin commentingAdmin = adminRepository.findByUsername(username).orElse(null);
+        if (commentingUser == null && commentingAdmin == null) {
+            throw new UserNotFoundException("User Not found");
+        }
+
+        // Fetch the replies
+        List<TicketComment> replies = ticketCommentRepository.findByParentCommentId(commentId);
+
+        // Convert the replies to response DTOs
+        return replies.stream().map(reply -> TicketCommentResponse.builder()
+                .responseCode("200")
+                .responseMessage("Reply fetched")
+                .ticketCommentInfo(TicketCommentInfo.builder()
+                        .createdAt(reply.getCreatedAt())
+                        .ticketTitle(reply.getTicket().getTitle())
+                        .comment(reply.getComment())
+                        .build())
+                .build()).collect(Collectors.toList());
+    }
+
+
     @Override
     public TicketCountResponse getTicketCountByUsername(String username) {
         System.out.println("serviceImpl username is " + username);
