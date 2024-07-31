@@ -74,7 +74,7 @@ public interface TicketService {
 
     // assign a ticket
 
-    String assignTicket(Long ticketId, Long assignId);
+    String assignTicket(Long ticketId, Long assignId, String username);
 
 
 
@@ -86,10 +86,10 @@ public interface TicketService {
 
 
     // get all tickets by a user
-    List<Ticket> getTicketByCreatedBy(String username);
+    List<NotificationTicketDto> getTicketByCreatedBy(String username);
 
     // get all tickets by created under
-    List<Ticket> getTicketByCreatedUnder(String username, Long adminId);
+    List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long adminId);
 
     TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId, Long commentId, String commenterUsername);
 

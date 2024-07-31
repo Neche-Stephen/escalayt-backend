@@ -13,5 +13,7 @@ public class CreatedByUserDTO {
     private String jobTitle;
     private String department;
     private String phoneNumber;
+    private String pictureUrl;
+    private String username;
 
 }
