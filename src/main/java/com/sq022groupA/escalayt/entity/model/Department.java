@@ -1,5 +1,7 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -25,6 +27,7 @@ public class Department extends BaseClass {
     // many department to one admin
     @ManyToOne
     @JoinColumn(name = "admin_id")
+    @JsonBackReference
     private Admin departmentCreatedBy;
 
     // the relationship to employee is one to many
@@ -37,8 +40,9 @@ public class Department extends BaseClass {
     private Long createdUnder;
 
     // map the employee to the department
-    @OneToMany(mappedBy = "employeeDepartment")
-    @JsonManagedReference
-    private List<User> userList;
+//    @OneToMany(mappedBy = "employeeDepartment")
+//    @JsonManagedReference
+//    @JsonIgnoreProperties("employeeDepartment")
+//    private List<User> userList;
 
 }

@@ -226,6 +226,8 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+
+
     @Override
     public TicketResponseDto createTicket(Long catId, TicketRequestDto ticketRequest, String username) {
 
@@ -502,5 +504,32 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+    // get by created by
+    @Override
+    public List<Ticket> getTicketByCreatedBy(String username) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            throw new UserNotFoundException("You cannot access this Tickets");
+        }
+
+        return user.getCreatedTickets();
+    }
+
+    // get by created under
+    @Override
+    public List<Ticket> getTicketByCreatedUnder(String username, Long adminId) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (admin == null || adminId != admin.getId()) {
+            throw new UserNotFoundException("You cannot access this tickets");
+        }
+
+        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(adminId);
+
+        return tickets;
+    }
 
 }

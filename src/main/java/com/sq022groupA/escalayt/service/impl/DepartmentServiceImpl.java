@@ -71,22 +71,22 @@ public class DepartmentServiceImpl  implements DepartmentService {
 
 
 
-    @Override
-    public List<User> getAllUserUnderDepartment(Long departmentId) {
-
-          Department department = departmentRepository.findById(departmentId).orElse(null);
-
-
-          // check that the category exist
-          if(department == null){
-
-              throw new DoesNotExistException("Department does not exist");
-          }
-
-
-
-        return department.getUserList();
-    }
+//    @Override
+//    public List<User> getAllUserUnderDepartment(Long departmentId) {
+//
+//          Department department = departmentRepository.findById(departmentId).orElse(null);
+//
+//
+//          // check that the category exist
+//          if(department == null){
+//
+//              throw new DoesNotExistException("Department does not exist");
+//          }
+//
+//
+//
+//        return department.getUserList();
+//    }
 
 
 }

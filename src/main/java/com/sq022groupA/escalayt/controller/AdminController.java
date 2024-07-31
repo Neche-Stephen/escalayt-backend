@@ -95,11 +95,11 @@ public class AdminController {
         return departmentService.getAllDepartment(username);
     }
 
-    @GetMapping("/department/{id}/employee")
-    public ResponseEntity<?> getAllDepartment(@PathVariable Long id){
-
-        List<User> listUser = departmentService.getAllUserUnderDepartment(id);
-
-        return ResponseEntity.ok(listUser);
-    }
+//    @GetMapping("/department/{id}/employee")
+//    public ResponseEntity<?> getAllDepartment(@PathVariable Long id){
+//
+//        List<User> listUser = departmentService.getAllUserUnderDepartment(id);
+//
+//        return ResponseEntity.ok(listUser);
+//    }
 }

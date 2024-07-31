@@ -14,6 +14,6 @@ public interface DepartmentService {
     // get all department
     List<String> getAllDepartment(String username);
 
-    List<User> getAllUserUnderDepartment(Long departmentId);
+   // List<User> getAllUserUnderDepartment(Long departmentId);
 
 }

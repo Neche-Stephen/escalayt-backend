@@ -22,3 +22,4 @@ public class TicketInfo {
 
     private LocalDateTime createdAt;
 }
+
