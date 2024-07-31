@@ -130,6 +130,26 @@ public class TicketController {
         return ResponseEntity.ok(openTickets);
     }
 
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/resolved-tickets")
+    public ResponseEntity<?> getLatestThreeResolvedTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeResolvedTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
+    }
+
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/inprogres-tickets")
+    public ResponseEntity<?> getLatestThreeInprogressTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeInprogressTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
+    }
+
     // filter ticket
     @GetMapping("/filter")
     public ResponseEntity<List<Ticket>> filterTickets(@RequestParam(required = false) Priority priority,
@@ -140,6 +160,21 @@ public class TicketController {
         List<Ticket> tickets = ticketService.filterTickets(priority, status, assigneeId, categoryId);
         return ResponseEntity.ok(tickets);
     }
+
+    // Filter tickets with pagination
+    @GetMapping("/filter-new")
+    public ResponseEntity<Page<TicketResponse>> filterTicketsWithPagination(
+            @RequestParam(required = false) List<Priority> priority,
+            @RequestParam(required = false) List<Status> status,
+            @RequestParam(required = false) List<Long> assigneeId,
+            @RequestParam(required = false) List<Long> categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size) {
+
+        Page<TicketResponse> tickets = ticketService.filterTicketsWithPagination(priority, status, assigneeId, categoryId, page, size);
+        return ResponseEntity.ok(tickets);
+    }
+
 
     // preview a ticket
     @GetMapping("/preview-ticket/{ticketId}")

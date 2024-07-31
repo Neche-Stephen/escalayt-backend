@@ -42,8 +42,18 @@ public interface TicketService {
 
     // Method to get the latest or recent open tickets
     List<TicketDto> getLatestThreeOpenTickets(String userName);
+    List<TicketDto> getLatestThreeResolvedTickets(String userName);
+    List<TicketDto> getLatestThreeInprogressTickets(String userName);
+
     // filter ticket
     List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId);
+    Page<TicketResponse> filterTicketsWithPagination(
+            List<Priority> priority,
+            List<Status> status,
+            List<Long> assigneeIds,
+            List<Long> categoryIds,
+            int page,
+            int size);
 
     Ticket getTicketById(Long ticketId);
 
