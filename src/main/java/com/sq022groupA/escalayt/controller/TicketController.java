@@ -218,4 +218,35 @@ public class TicketController {
         String response = ticketService.assignTicket(id, assignId);
         return ResponseEntity.ok(response);
     }
+
+    //create endpoint to get ticket by created under
+    // for admin
+    @GetMapping("/get-ticket/created-under/{id}")
+    public ResponseEntity<?> getTicketByCreatedUnder(@PathVariable Long id){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<Ticket> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //get ticket by created by
+    // for user
+    @GetMapping("/get-ticket/created-by")
+    public ResponseEntity<?> getTicketByCreatedBy(){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<Ticket> response = ticketService.getTicketByCreatedBy(currentUsername);
+
+
+        return ResponseEntity.ok(response);
+    }
+
+
 }

@@ -66,13 +66,18 @@ public interface TicketService {
 
 
 
-
-
     // get ticket category by name
     List<String> getCategoryName(String username);
 
     // get all tickets
     List<TicketResponse> getAllTicket(String username,int page, int size);
+
+
+    // get all tickets by a user
+    List<Ticket> getTicketByCreatedBy(String username);
+
+    // get all tickets by created under
+    List<Ticket> getTicketByCreatedUnder(String username, Long adminId);
 
 
 }

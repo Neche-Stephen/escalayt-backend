@@ -54,4 +54,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByCreatedByUserId(Long userId, Pageable pageable);
 
+    // find all by created under
+    List<Ticket> findAllByCreatedUnder(Long createdUnderId);
+
 }
