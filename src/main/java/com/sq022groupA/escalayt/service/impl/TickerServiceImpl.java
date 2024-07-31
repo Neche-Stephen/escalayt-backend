@@ -19,11 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -500,28 +497,45 @@ public class TickerServiceImpl implements TicketService {
         ticketRepository.save(ticket);
     }
 
+
+
     @Override
     public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable) {
-      Page<Ticket> ticketsPage;
+        Page<Ticket> ticketsPage;
 
-      if("ADMIN".equals(role)){
-          ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
-      } else if("USER".equals(role)){
-          ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
-      } else {
-          throw new IllegalArgumentException("Invalid role: " + role);
-      }
+        if("ADMIN".equals(role)){
+            ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+        } else if("USER".equals(role)){
+            ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
 
-        return ticketsPage.map(ticket -> new TicketActivitiesResponseDto(
-                ticket.getId(),
-                ticket.getTitle(),
-                ticket.getPriority().toString(),
-                ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null,
-                ticket.getStatus().toString(),
-                ticket.getTicketCategory().getName(),
-                ticket.getCreatedAt(),
-                ticket.getLocation()
-        ));
+        List<TicketActivitiesResponseDto> sortedDtos = ticketsPage.stream()
+                .map(ticket -> {
+                    long minuteDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
+
+                    if (ticket.getUpdatedAt() != null) {
+                        minuteDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+                    return new TicketActivitiesResponseDto(
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            ticket.getPriority().toString(),
+                            ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null,
+                            ticket.getStatus().toString(),
+                            ticket.getTicketCategory().getName(),
+                            ticket.getCreatedAt(),
+                            ticket.getLocation(),
+                            minuteDifference // Assuming you want to include the minuteDifference in the DTO
+                    );
+                })
+                .sorted(Comparator.comparingLong(TicketActivitiesResponseDto::getMinuteDifference)) // Sorting by minuteDifference
+                .collect(Collectors.toList()); // Collect to a List
+
+        // Return a new Page with the sorted list
+        return new PageImpl<>(sortedDtos, ticketsPage.getPageable(), ticketsPage.getTotalElements());
     }
 
     @Override
@@ -533,6 +547,8 @@ public class TickerServiceImpl implements TicketService {
     public User getUserId(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
+
+
 
 
     // assign ticket to assignee
