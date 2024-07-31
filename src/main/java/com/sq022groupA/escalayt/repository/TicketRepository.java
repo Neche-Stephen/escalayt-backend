@@ -29,6 +29,19 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
                                       @Param("assigneeId") Long assigneeId, @Param("categoryId") Long categoryId);
 
 
+    @Query("SELECT t FROM Ticket t WHERE " +
+            "(:priority IS NULL OR t.priority IN :priority) AND " +
+            "(:status IS NULL OR t.status IN :status) AND " +
+            "(:assigneeIds IS NULL OR t.assignee.id IN :assigneeIds) AND " +
+            "(:categoryIds IS NULL OR t.ticketCategory.id IN :categoryIds)")
+    Page<Ticket> findTicketsByFilters(
+            @Param("priority") List<Priority> priority,
+            @Param("status") List<Status> status,
+            @Param("assigneeIds") List<Long> assigneeIds,
+            @Param("categoryIds") List<Long> categoryIds,
+            Pageable pageable);
+
+
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.createdByUser.id = :userId")
     Long countTicketsByUser(Long userId);
 
@@ -49,5 +62,12 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     //query tickets based on the user ID stored in createdByUser field
     Page<Ticket> findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(Long userid, Pageable pageable);
+
+    List<Ticket> findByCreatedUnder(Long createdUnderId, Pageable pageable);
+
+    List<Ticket> findByCreatedByUserId(Long userId, Pageable pageable);
+
+    // find all by created under
+    List<Ticket> findAllByCreatedUnder(Long createdUnderId);
 
 }

@@ -1,5 +1,6 @@
 package com.sq022groupA.escalayt.entity.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -55,6 +56,7 @@ public class User extends BaseClass implements UserDetails {
     @JsonManagedReference
     private List<Ticket> createdTickets;
 
+
     @OneToMany(mappedBy = "resolvedByUser")
     @JsonManagedReference
     private List<Ticket> resolvedTickets;
@@ -74,12 +76,14 @@ public class User extends BaseClass implements UserDetails {
     //a relationship between the employees and admin
     @ManyToOne
     @JoinColumn(name = "admin_id")
+    @JsonBackReference
     private Admin admin;
 
 
     // mapped user to department
     @ManyToOne
     @JoinColumn(name = "department_id")
+    @JsonBackReference
     private Department employeeDepartment;
 
 

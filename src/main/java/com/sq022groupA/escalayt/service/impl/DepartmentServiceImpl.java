@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class DepartmentServiceImpl  implements DepartmentService {
 
 
     @Override
-    public List<Department> getAllDepartment( String username) {
+    public List<String> getAllDepartment( String username) {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
@@ -63,28 +64,29 @@ public class DepartmentServiceImpl  implements DepartmentService {
 
             throw new UserNotFoundException("Not an admin");
         }
+        List<Department> departmentList = departmentRepository.findByCreatedUnder(admin.getId());
 
-        return admin.getDepartmentList();
+        return departmentList.stream().map(Department::getDepartment).collect(Collectors.toList());
     }
 
 
 
-    @Override
-    public List<User> getAllUserUnderDepartment(Long departmentId) {
-
-          Department department = departmentRepository.findById(departmentId).orElse(null);
-
-
-          // check that the category exist
-          if(department == null){
-
-              throw new DoesNotExistException("Department does not exist");
-          }
-
-
-
-        return department.getUserList();
-    }
+//    @Override
+//    public List<User> getAllUserUnderDepartment(Long departmentId) {
+//
+//          Department department = departmentRepository.findById(departmentId).orElse(null);
+//
+//
+//          // check that the category exist
+//          if(department == null){
+//
+//              throw new DoesNotExistException("Department does not exist");
+//          }
+//
+//
+//
+//        return department.getUserList();
+//    }
 
 
 }

@@ -86,23 +86,23 @@ public class AdminController {
     }
 
     // get all department
-
     @GetMapping("/get-all-department")
-    public ResponseEntity<?> getAllDepartment(){
+    public List<String> getAllDepartment(){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        List<Department> listOfDepartment = departmentService.getAllDepartment(username);
-
-        return ResponseEntity.ok(listOfDepartment);
+        return departmentService.getAllDepartment(username);
     }
 
-    @GetMapping("/department/{id}/employee")
-    public ResponseEntity<?> getAllDepartment(@PathVariable Long id){
+//    @GetMapping("/department/{id}/employee")
+//    public ResponseEntity<?> getAllDepartment(@PathVariable Long id){
+//
+//        List<User> listUser = departmentService.getAllUserUnderDepartment(id);
+//
+//        return ResponseEntity.ok(listUser);
+//    }
 
-        List<User> listUser = departmentService.getAllUserUnderDepartment(id);
+    // get the user from the database.
 
-        return ResponseEntity.ok(listUser);
-    }
 }

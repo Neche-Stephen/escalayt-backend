@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +41,10 @@ public class TickerServiceImpl implements TicketService {
     public TicketCommentResponse createTicketComment(TicketCommentRequestDto commentRequestDto, Long ticketId, String commenter) {
         // check if user exists
         User commentingUser = userRepository.findByUsername(commenter).orElse(null);
-        if(commentingUser == null){
 
+        // get admin
+        Admin commentingAdmin = adminRepository.findByUsername(commenter).orElse(null);
+        if(commentingUser == null && commentingAdmin == null){
             throw new UserNotFoundException("User Not found");
         }
 
@@ -57,6 +60,7 @@ public class TickerServiceImpl implements TicketService {
                 .ticket(commentingTicket)
                 .comment(commentRequestDto.getComment())
                 .commenter(commentingUser)
+                .adminCommenter(commentingAdmin)
                 .build());
 
         return TicketCommentResponse.builder()
@@ -64,7 +68,6 @@ public class TickerServiceImpl implements TicketService {
                 .responseMessage("ticket commented")
                 .ticketCommentInfo(TicketCommentInfo.builder()
                         .createdAt(ticketComment.getCreatedAt())
-                        .commenter(ticketComment.getCommenter().getUsername())
                         .ticketTitle(ticketComment.getTicket().getTitle())
                         .build())
                 .build();
@@ -187,6 +190,47 @@ public class TickerServiceImpl implements TicketService {
     }
 
     @Override
+    public List<TicketResponse> getAllTicket(String username, int page, int size) {
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        Pageable pageable = PageRequest.of(page, size);
+        List<Ticket> ticketList;
+
+        if(admin != null){
+            ticketList = ticketRepository.findByCreatedUnder(admin.getId(), pageable);
+        }else {
+            assert user != null;
+            ticketList = ticketRepository.findByCreatedByUserId(user.getId(), pageable);
+        }
+
+        return ticketList.stream().map(ticket -> {
+
+            TicketResponse ticketResponse = new TicketResponse();
+            ticketResponse.setId(ticket.getId());
+            ticketResponse.setCreatedAt(ticket.getCreatedAt());
+            ticketResponse.setUpdatedAt(ticket.getUpdatedAt());
+            ticketResponse.setTitle(ticket.getTitle());
+            ticketResponse.setLocation(ticket.getLocation());
+            ticketResponse.setPriority(ticket.getPriority().toString());
+            ticketResponse.setDescription(ticket.getDescription());
+            ticketResponse.setCreatedUnder(ticket.getCreatedUnder());
+            ticketResponse.setStatus(ticket.getStatus().toString());
+            ticketResponse.setRating(ticket.getRating());
+            ticketResponse.setReview(ticket.getReview());
+            ticketResponse.setTicketCategoryId(ticket.getTicketCategory().getId());
+            ticketResponse.setTicketCategoryName(ticket.getTicketCategory().getName());
+            if (ticket.getAssignee() != null) {
+                ticketResponse.setAssigneeFullName(ticket.getAssignee().getFullName());
+            }
+            return ticketResponse;
+        }).collect(Collectors.toList());
+    }
+
+
+
+
+    @Override
     public TicketResponseDto createTicket(Long catId, TicketRequestDto ticketRequest, String username) {
 
         // get the creator of the ticket
@@ -251,21 +295,120 @@ public class TickerServiceImpl implements TicketService {
                 .build();
     }
 
-    // Method to get the latest or recent open tickets
     @Override
-    public List<Ticket> getLatestThreeOpenTickets(String userName) {
-
+    public List<TicketDto> getLatestThreeOpenTickets(String userName) {
         Admin admin = adminRepository.findByUsername(userName).orElse(null);
 
-        if(admin == null){
+        if (admin == null) {
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
-        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+
+        return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
+
+    @Override
+    public List<TicketDto> getLatestThreeResolvedTickets(String userName) {
+        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+
+        if (admin == null) {
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVE, admin.getId());
+
+        return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TicketDto> getLatestThreeInprogressTickets(String userName) {
+        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+
+        if (admin == null) {
+            throw new UserNotFoundException("You do not have proper authorization to make this action");
+        }
+
+        List<Ticket> inprogresTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.IN_PROGRESS, admin.getId());
+
+        return inprogresTickets.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    private TicketDto mapToDto(Ticket ticket) {
+        return TicketDto.builder()
+                .id(ticket.getId())
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .title(ticket.getTitle())
+                .location(ticket.getLocation())
+                .priority(ticket.getPriority())
+                .description(ticket.getDescription())
+                .createdByUser(ticket.getCreatedByUser() != null ? ticket.getCreatedByUser().getFullName() : null)
+                .createdByAdmin(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getFirstName() + " " + ticket.getCreatedByAdmin().getLastName() : null)
+                .resolvedByUser(ticket.getResolvedByUser() != null ? ticket.getResolvedByUser().getFullName() : null)
+                .resolvedByAdmin(ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() + " " + ticket.getResolvedByAdmin().getLastName() : null)
+                .createdUnder(ticket.getCreatedUnder())
+                .status(ticket.getStatus())
+                .rating(ticket.getRating())
+                .review(ticket.getReview())
+                .ticketComments(ticket.getTicketComments())
+                .assignee(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
+                .build();
+    }
+
+    // Method to get the latest or recent open tickets
+//    @Override
+//    public List<Ticket> getLatestThreeOpenTickets(String userName) {
+//
+//        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+//
+//        if(admin == null){
+//            throw new UserNotFoundException("You do not have proper authorization to make this action");
+//        }
+//        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
+//    }
+
+
+
 
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
         return ticketRepository.findTicketsByFilters(priority, status, assigneeId, categoryId);
     }
+
+    public Page<TicketResponse> filterTicketsWithPagination(
+            List<Priority> priority,
+            List<Status> status,
+            List<Long> assigneeIds,
+            List<Long> categoryIds,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Ticket> ticketPage = ticketRepository.findTicketsByFilters(priority, status, assigneeIds, categoryIds, pageable);
+
+        return ticketPage.map(ticket -> {
+            TicketResponse ticketResponse = new TicketResponse();
+            ticketResponse.setId(ticket.getId());
+            ticketResponse.setCreatedAt(ticket.getCreatedAt());
+            ticketResponse.setUpdatedAt(ticket.getUpdatedAt());
+            ticketResponse.setTitle(ticket.getTitle());
+            ticketResponse.setLocation(ticket.getLocation());
+            ticketResponse.setPriority(ticket.getPriority().toString());
+            ticketResponse.setDescription(ticket.getDescription());
+            ticketResponse.setCreatedUnder(ticket.getCreatedUnder());
+            ticketResponse.setStatus(ticket.getStatus().toString());
+            ticketResponse.setRating(ticket.getRating());
+            ticketResponse.setReview(ticket.getReview());
+            ticketResponse.setTicketCategoryId(ticket.getTicketCategory().getId());
+            ticketResponse.setTicketCategoryName(ticket.getTicketCategory().getName());
+            if (ticket.getAssignee() != null) {
+                ticketResponse.setAssigneeFullName(ticket.getAssignee().getFullName());
+            }
+            return ticketResponse;
+        });
+    }
+
 
     public Ticket getTicketById(Long ticketId) {
         return ticketRepository.findById(ticketId)
@@ -363,5 +506,32 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+    // get by created by
+    @Override
+    public List<Ticket> getTicketByCreatedBy(String username) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if (user == null) {
+            throw new UserNotFoundException("You cannot access this Tickets");
+        }
+
+        return user.getCreatedTickets();
+    }
+
+    // get by created under
+    @Override
+    public List<Ticket> getTicketByCreatedUnder(String username, Long adminId) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (admin == null || adminId != admin.getId()) {
+            throw new UserNotFoundException("You cannot access this tickets");
+        }
+
+        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(adminId);
+
+        return tickets;
+    }
 
 }

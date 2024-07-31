@@ -126,8 +126,28 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        List<TicketDto> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
         return ResponseEntity.ok(openTickets);
+    }
+
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/resolved-tickets")
+    public ResponseEntity<?> getLatestThreeResolvedTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeResolvedTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
+    }
+
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/inprogres-tickets")
+    public ResponseEntity<?> getLatestThreeInprogressTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeInprogressTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
     }
 
     // filter ticket
@@ -141,11 +161,38 @@ public class TicketController {
         return ResponseEntity.ok(tickets);
     }
 
+    // Filter tickets with pagination
+    @GetMapping("/filter-new")
+    public ResponseEntity<Page<TicketResponse>> filterTicketsWithPagination(
+            @RequestParam(required = false) List<Priority> priority,
+            @RequestParam(required = false) List<Status> status,
+            @RequestParam(required = false) List<Long> assigneeId,
+            @RequestParam(required = false) List<Long> categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "7") int size) {
+
+        Page<TicketResponse> tickets = ticketService.filterTicketsWithPagination(priority, status, assigneeId, categoryId, page, size);
+        return ResponseEntity.ok(tickets);
+    }
+
+
     // preview a ticket
     @GetMapping("/preview-ticket/{ticketId}")
     public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
         Ticket ticket = ticketService.getTicketById(ticketId);
         return ResponseEntity.ok(ticket);
+    }
+
+    // view all tickets
+    @GetMapping("/view-all-tickets")
+    public List<TicketResponse> viewAllTickets(@RequestParam(defaultValue = "0") int page){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        int size = 14;
+
+        return ticketService.getAllTicket(currentUsername, page, size);
     }
 
 
@@ -206,6 +253,37 @@ public class TicketController {
         String response = ticketService.assignTicket(id, assignId);
         return ResponseEntity.ok(response);
     }
+
+    //create endpoint to get ticket by created under
+    // for admin
+    @GetMapping("/get-ticket/created-under/{id}")
+    public ResponseEntity<?> getTicketByCreatedUnder(@PathVariable Long id){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<Ticket> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //get ticket by created by
+    // for user
+    @GetMapping("/get-ticket/created-by")
+    public ResponseEntity<?> getTicketByCreatedBy(){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<Ticket> response = ticketService.getTicketByCreatedBy(currentUsername);
+
+
+        return ResponseEntity.ok(response);
+    }
+
+
 
 
 }
