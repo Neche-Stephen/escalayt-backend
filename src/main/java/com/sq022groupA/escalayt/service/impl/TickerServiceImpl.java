@@ -631,7 +631,6 @@ public class TickerServiceImpl implements TicketService {
                         minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
                     }
 
-                    //long minutesDifference =(ticket.getCreatedUnder() != null) ? Duration.between(ticket.getCreatedAt(), ticket.getUpdatedAt()).toMinutes() : ticket.getCreatedAt().getMinute();
 
                            return new NotificationTicketDto(
                                     ticket.getId(), ticket.getTitle(),
@@ -643,7 +642,8 @@ public class TickerServiceImpl implements TicketService {
                                             .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername() : ticket.getCreatedByUser().getUsername())
                                             .build()
 
-                );})
+                );}).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+                .limit(7) // Limit to the first 7 elements
                 .collect(Collectors.toList());
 
         return notificationTicketDto;
