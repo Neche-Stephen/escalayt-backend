@@ -11,13 +11,16 @@ import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.service.TicketService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -574,21 +577,34 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You cannot access this Tickets");
         }
 
-        List <NotificationTicketDto> notificationTicketDto = user.getCreatedTickets().stream().map(ticket -> new NotificationTicketDto(
-                        ticket.getId(), ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getTitle(), ticket.getDescription(),
-                        ticket.getStatus(),
+        List <NotificationTicketDto> notificationTicketDto = user.getCreatedTickets().stream().map(ticket -> {
 
-                        CreatedByDto.builder()
-                                .id(ticket.getCreatedByUser().getId())
-                                .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
-                                .username( ticket.getCreatedByUser().getUsername())
-                                .build()
-                )
+                    long minutesDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
 
-        ).collect(Collectors.toList());
+                    if(ticket.getUpdatedAt() != null){
+                        minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+            return new NotificationTicketDto(
+                    ticket.getId(),  ticket.getTitle(),
+                    ticket.getStatus(),
+                    minutesDifference,
+                    CreatedByDto.builder()
+                            .id(ticket.getCreatedByUser().getId())
+                            .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
+                            .username( ticket.getCreatedByUser().getUsername())
+                            .build()
+            );
+                }
+
+        ).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+                .limit(7) // Limit to the first 7 elements
+                .collect(Collectors.toList());
 
         return notificationTicketDto;
     }
+
+
 
     // get by created under
     @Override
@@ -600,20 +616,34 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You cannot access this tickets");
         }
 
-        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(createdUnderId);
+        // reduces the notification to just seven.
+        Pageable topSeven = PageRequest.of(0, 7, Sort.by(Sort.Direction.DESC, "updatedAt", "createdAt"));
+        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(createdUnderId, topSeven);
 
 
         List<NotificationTicketDto> notificationTicketDto = tickets.stream()
-                .map(ticket -> new NotificationTicketDto(
-                       ticket.getId(), ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getTitle(), ticket.getDescription(),
-                        ticket.getStatus(),
+                .map(ticket -> {
 
-                        CreatedByDto.builder()
-                                .id(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : ticket.getCreatedByUser().getId())
-                                .pictureUrl(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getPictureUrl(): ticket.getCreatedByUser().getPictureUrl())
-                                .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername(): ticket.getCreatedByUser().getUsername())
-                                .build()
-                ))
+
+                    long minutesDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
+
+                    if(ticket.getUpdatedAt() != null){
+                        minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+                    //long minutesDifference =(ticket.getCreatedUnder() != null) ? Duration.between(ticket.getCreatedAt(), ticket.getUpdatedAt()).toMinutes() : ticket.getCreatedAt().getMinute();
+
+                           return new NotificationTicketDto(
+                                    ticket.getId(), ticket.getTitle(),
+                                    ticket.getStatus(),
+                                    minutesDifference,
+                                    CreatedByDto.builder()
+                                            .id(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : ticket.getCreatedByUser().getId())
+                                            .pictureUrl(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getPictureUrl() : ticket.getCreatedByUser().getPictureUrl())
+                                            .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername() : ticket.getCreatedByUser().getUsername())
+                                            .build()
+
+                );})
                 .collect(Collectors.toList());
 
         return notificationTicketDto;

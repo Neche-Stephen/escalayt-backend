@@ -17,10 +17,9 @@ import java.util.List;
 public class NotificationTicketDto {
 
     private Long id;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private String title;
-    private String description;
     private Status status;
+    private long minutesDifference;
     private CreatedByDto createdByDto;
+
 }
