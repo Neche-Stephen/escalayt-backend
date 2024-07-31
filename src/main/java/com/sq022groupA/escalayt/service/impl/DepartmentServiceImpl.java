@@ -53,20 +53,18 @@ public class DepartmentServiceImpl  implements DepartmentService {
         return "Department created successfully";
     }
 
-
     @Override
-    public List<String> getAllDepartment( String username) {
+    public List<Department> getAllDepartment( String username) {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
-        // just to confirm that user exist in the database
+        // just to confirm that user exists in the database
         if(admin == null){
 
             throw new UserNotFoundException("Not an admin");
         }
-        List<Department> departmentList = departmentRepository.findByCreatedUnder(admin.getId());
 
-        return departmentList.stream().map(Department::getDepartment).collect(Collectors.toList());
+        return admin.getDepartmentList();
     }
 
 

@@ -360,7 +360,7 @@ public class TickerServiceImpl implements TicketService {
 //    @Override
 //    public List<Ticket> getLatestThreeOpenTickets(String userName) {
 //
-//        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+//         = adminRepository.findByUsername(userName).orElse(null);
 //
 //        if(admin == null){
 //            throw new UserNotFoundException("You do not have proper authorization to make this action");
@@ -414,6 +414,55 @@ public class TickerServiceImpl implements TicketService {
         return ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
     }
+
+    public TicketDTOs getTicketByIds(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId).orElseThrow(
+                () -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
+
+        AssigneeDTO assigneeDTO = null;
+
+        if (ticket.getAssignee() != null) {
+            assigneeDTO = AssigneeDTO.builder()
+                    .fullName(ticket.getAssignee().getFullName())
+                    .email(ticket.getAssignee().getEmail())
+                    .jobTitle(ticket.getAssignee().getJobTitle())
+                    .phoneNumber(ticket.getAssignee().getPhoneNumber())
+                    .build();
+        }
+
+        CreatedByUserDTO createdByUserDTO = null;
+        if (ticket.getCreatedByUser() != null) {
+            createdByUserDTO = CreatedByUserDTO.builder()
+                    .fullName(ticket.getCreatedByUser().getFullName())
+                    .email(ticket.getCreatedByUser().getEmail())
+                    .jobTitle(ticket.getCreatedByUser().getJobTitle())
+                    .department(ticket.getCreatedByUser().getEmployeeDepartment() != null ? ticket.getCreatedByUser().getEmployeeDepartment().getDepartment() : null)
+                    .phoneNumber(ticket.getCreatedByUser().getPhoneNumber())
+                    .build();
+        }
+
+        return TicketDTOs.builder()
+                .id(ticket.getId())
+                .createdAt(ticket.getCreatedAt())
+                .updatedAt(ticket.getUpdatedAt())
+                .title(ticket.getTitle())
+                .location(ticket.getLocation())
+                .priority(ticket.getPriority().name())
+                .description(ticket.getDescription())
+                .createdUnder(ticket.getCreatedUnder())
+                .status(ticket.getStatus().name())
+                .rating(ticket.getRating())
+                .review(ticket.getReview())
+                .ticketComments(ticket.getTicketComments().stream().map(TicketComment::getComment).collect(Collectors.toList()))
+                .assignee(assigneeDTO)
+                .ticketCategoryName(ticket.getTicketCategory().getName())
+                .createdByUserId(ticket.getCreatedByUser() != null ? ticket.getCreatedByUser().getId() : null)
+                .createdByAdminId(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : null)
+                .createdByUser(createdByUserDTO)
+                .build();
+    }
+
+
 
     public void resolveTicket(Long ticketId, String username) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -505,6 +554,8 @@ public class TickerServiceImpl implements TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
         ticket.setAssignee(userAssigned);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticket.setStatus(Status.IN_PROGRESS);
 
         ticketRepository.save(ticket);
 
@@ -515,7 +566,7 @@ public class TickerServiceImpl implements TicketService {
 
     // get by created by
     @Override
-    public List<Ticket> getTicketByCreatedBy(String username) {
+    public List<NotificationTicketDto> getTicketByCreatedBy(String username) {
 
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -523,22 +574,49 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You cannot access this Tickets");
         }
 
-        return user.getCreatedTickets();
+        List <NotificationTicketDto> notificationTicketDto = user.getCreatedTickets().stream().map(ticket -> new NotificationTicketDto(
+                        ticket.getId(), ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getTitle(), ticket.getDescription(),
+                        ticket.getStatus(),
+
+                        CreatedByDto.builder()
+                                .id(ticket.getCreatedByUser().getId())
+                                .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
+                                .username( ticket.getCreatedByUser().getUsername())
+                                .build()
+                )
+
+        ).collect(Collectors.toList());
+
+        return notificationTicketDto;
     }
 
     // get by created under
     @Override
-    public List<Ticket> getTicketByCreatedUnder(String username, Long adminId) {
+    public List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long createdUnderId) {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
-        if (admin == null || adminId != admin.getId()) {
+        if (admin == null || createdUnderId != admin.getId()) {
             throw new UserNotFoundException("You cannot access this tickets");
         }
 
-        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(adminId);
+        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(createdUnderId);
 
-        return tickets;
+
+        List<NotificationTicketDto> notificationTicketDto = tickets.stream()
+                .map(ticket -> new NotificationTicketDto(
+                       ticket.getId(), ticket.getCreatedAt(), ticket.getUpdatedAt(), ticket.getTitle(), ticket.getDescription(),
+                        ticket.getStatus(),
+
+                        CreatedByDto.builder()
+                                .id(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : ticket.getCreatedByUser().getId())
+                                .pictureUrl(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getPictureUrl(): ticket.getCreatedByUser().getPictureUrl())
+                                .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername(): ticket.getCreatedByUser().getUsername())
+                                .build()
+                ))
+                .collect(Collectors.toList());
+
+        return notificationTicketDto;
     }
 
 }

@@ -177,10 +177,16 @@ public class TicketController {
 
 
     // preview a ticket
+//    @GetMapping("/preview-ticket/{ticketId}")
+//    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
+//        Ticket ticket = ticketService.getTicketById(ticketId);
+//        return ResponseEntity.ok(ticket);
+//    }
+
     @GetMapping("/preview-ticket/{ticketId}")
-    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        return ResponseEntity.ok(ticket);
+    public ResponseEntity<TicketDTOs> previewTicket(@PathVariable Long ticketId) {
+        TicketDTOs ticketDTO = ticketService.getTicketByIds(ticketId);
+        return ResponseEntity.ok(ticketDTO);
     }
 
     // view all tickets
@@ -267,7 +273,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
 
         return ResponseEntity.ok(response);
     }
@@ -281,7 +287,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedBy(currentUsername);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
 
 
         return ResponseEntity.ok(response);

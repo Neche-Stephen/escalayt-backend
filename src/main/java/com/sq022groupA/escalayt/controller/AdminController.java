@@ -87,12 +87,14 @@ public class AdminController {
 
     // get all department
     @GetMapping("/get-all-department")
-    public List<String> getAllDepartment(){
+    public ResponseEntity<?> getAllDepartment(){
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        return departmentService.getAllDepartment(username);
+        List<Department> listOfDepartment = departmentService.getAllDepartment(username);
+
+        return ResponseEntity.ok(listOfDepartment);
     }
 
 //    @GetMapping("/department/{id}/employee")

@@ -41,6 +41,8 @@ public class User extends BaseClass implements UserDetails {
 
     private String jobTitle;
 
+    private String pictureUrl;
+
     //private String department;
 
     private Long createdUnder; // Id of the Admin

@@ -57,6 +57,8 @@ public interface TicketService {
 
     Ticket getTicketById(Long ticketId);
 
+    TicketDTOs getTicketByIds(Long ticketId);
+
     void resolveTicket(Long ticketId, String username);
 
     void rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
@@ -84,10 +86,10 @@ public interface TicketService {
 
 
     // get all tickets by a user
-    List<Ticket> getTicketByCreatedBy(String username);
+    List<NotificationTicketDto> getTicketByCreatedBy(String username);
 
     // get all tickets by created under
-    List<Ticket> getTicketByCreatedUnder(String username, Long adminId);
+    List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long adminId);
 
 
 }
