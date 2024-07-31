@@ -41,7 +41,7 @@ public interface TicketService {
     TicketResponseDto deleteTicket(Long ticketId);
 
     // Method to get the latest or recent open tickets
-    List<Ticket> getLatestThreeOpenTickets(String userName);
+    List<TicketDto> getLatestThreeOpenTickets(String userName);
     // filter ticket
     List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId);
 
@@ -59,9 +59,20 @@ public interface TicketService {
 
     User getUserId(String username);
 
+
+    // assign a ticket
+
+    String assignTicket(Long ticketId, Long assignId);
+
+
+
+
+
     // get ticket category by name
     List<String> getCategoryName(String username);
 
+    // get all tickets
+    List<TicketResponse> getAllTicket(String username,int page, int size);
 
 
 }

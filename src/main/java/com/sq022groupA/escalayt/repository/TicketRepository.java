@@ -50,4 +50,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     //query tickets based on the user ID stored in createdByUser field
     Page<Ticket> findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(Long userid, Pageable pageable);
 
+    List<Ticket> findByCreatedUnder(Long createdUnderId, Pageable pageable);
+
+    List<Ticket> findByCreatedByUserId(Long userId, Pageable pageable);
+
 }
