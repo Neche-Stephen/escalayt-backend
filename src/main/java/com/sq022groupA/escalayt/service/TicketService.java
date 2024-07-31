@@ -72,7 +72,7 @@ public interface TicketService {
 
     // assign a ticket
 
-    String assignTicket(Long ticketId, Long assignId);
+    String assignTicket(Long ticketId, Long assignId, String username);
 
 
 

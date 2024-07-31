@@ -485,14 +485,21 @@ public class TickerServiceImpl implements TicketService {
 
     // assign ticket to assignee
     @Override
-    public String assignTicket(Long ticketId, Long assignId) {
+    public String assignTicket(Long ticketId, Long assignId, String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
         User userAssigned = userRepository.findById(assignId).orElse(null);
 
 
-        if(userAssigned == null){
+        if(admin == null){
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
 
+
+        if(userAssigned == null){
+            throw new UserNotFoundException("user does not exist to assign ticket to");
+        }
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));

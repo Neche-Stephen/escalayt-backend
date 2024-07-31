@@ -248,9 +248,13 @@ public class TicketController {
     }
 
     @PutMapping("/assign-ticket/{id}")
-    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody AssignTicketRequestDto requestDto){
 
-        String response = ticketService.assignTicket(id, assignId);
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        String response = ticketService.assignTicket(id, requestDto.getAssigneeId(), currentUsername);
         return ResponseEntity.ok(response);
     }
 
