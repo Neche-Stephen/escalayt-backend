@@ -104,4 +104,7 @@ public class AdminController {
 //
 //        return ResponseEntity.ok(listUser);
 //    }
+
+    // get the user from the database.
+
 }
