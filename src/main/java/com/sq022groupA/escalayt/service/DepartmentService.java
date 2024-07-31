@@ -11,8 +11,8 @@ public interface DepartmentService {
     //create Department
     String createDepartment(DepartmentRequestDto requestDto, String username);
 
-    // get all department
-    List<String> getAllDepartment(String username);
+    // get all departments
+    List<Department> getAllDepartment( String username);
 
    // List<User> getAllUserUnderDepartment(Long departmentId);
 

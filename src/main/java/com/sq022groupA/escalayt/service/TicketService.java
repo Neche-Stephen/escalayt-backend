@@ -57,6 +57,8 @@ public interface TicketService {
 
     Ticket getTicketById(Long ticketId);
 
+    TicketDTOs getTicketByIds(Long ticketId);
+
     void resolveTicket(Long ticketId, String username);
 
     void rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
