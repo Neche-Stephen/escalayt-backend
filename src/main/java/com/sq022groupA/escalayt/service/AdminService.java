@@ -27,4 +27,6 @@ public interface AdminService {
     UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto, Long departmentId) throws MessagingException;
 
 
+
+
 }

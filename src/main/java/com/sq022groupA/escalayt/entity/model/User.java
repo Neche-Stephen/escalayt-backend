@@ -56,6 +56,7 @@ public class User extends BaseClass implements UserDetails {
     @JsonManagedReference
     private List<Ticket> createdTickets;
 
+
     @OneToMany(mappedBy = "resolvedByUser")
     @JsonManagedReference
     private List<Ticket> resolvedTickets;

@@ -53,4 +53,8 @@ public class TicketComment extends BaseClass{
     @JsonBackReference
     private User commenter;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_commenter_id")
+    private Admin adminCommenter;
+
 }
