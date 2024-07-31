@@ -254,9 +254,13 @@ public class TicketController {
     }
 
     @PutMapping("/assign-ticket/{id}")
-    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody AssignTicketRequestDto requestDto){
 
-        String response = ticketService.assignTicket(id, assignId);
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        String response = ticketService.assignTicket(id, requestDto.getAssigneeId(), currentUsername);
         return ResponseEntity.ok(response);
     }
 
@@ -269,7 +273,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
 
         return ResponseEntity.ok(response);
     }
@@ -283,11 +287,13 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedBy(currentUsername);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
 
 
         return ResponseEntity.ok(response);
     }
+
+
 
 
 }
