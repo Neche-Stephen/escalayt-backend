@@ -327,7 +327,7 @@ public class AdminServiceImpl implements AdminService {
 
     // USER/EMPLOYEE REGISTRATION
     @Override
-    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto, Long departmentId) throws MessagingException {
+    public UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException {
         // GET ADMIN ID BY USERNAME
         Optional<Admin> loggedInAdmin = adminRepository.findByUsername(currentUsername);
 
@@ -336,7 +336,7 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Admin user not found");
         }
 
-        Department currentDepartment = departmentRepository.findById(departmentId).orElse(null);
+        Department currentDepartment = departmentRepository.findById(userRegistrationDto.getDepartmentId()).orElse(null);
 
         if(currentDepartment == null){
             throw new DoesNotExistException("Department does not exist");
@@ -378,11 +378,11 @@ public class AdminServiceImpl implements AdminService {
         User savedUser = userRepository.save(newUser);
 
         // Set up email message for the registered user/employee
-        String userLoginUrl = baseUrl + "/user-login";
+        String userLoginUrl = baseUrl + "/user/login";
 
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(savedUser.getEmail())
-                .subject("ACTIVATE YOUR ACCOUNT")
+                .subject("ESCALAYT LOGIN DETAILS")
                 .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
                         savedUser.getUsername(), generatedPassword, userLoginUrl))
                 .build();

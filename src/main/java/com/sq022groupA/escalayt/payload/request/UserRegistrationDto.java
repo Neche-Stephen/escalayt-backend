@@ -21,6 +21,9 @@ public class UserRegistrationDto {
     @NotBlank(message = "Job title is required")
     private String jobTitle;
 
+    @NotBlank(message = "Department is required")
+    private Long departmentId;
+
 //    @NotBlank(message = "Department is required")
 //    private String department;
 }

@@ -24,7 +24,7 @@ public interface AdminService {
 
 
     // USER/EMPLOYEE RELATED METHODS
-    UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto, Long departmentId) throws MessagingException;
+    UserRegistrationResponse registerUser(String currentUsername, UserRegistrationDto userRegistrationDto) throws MessagingException;
 
 
 

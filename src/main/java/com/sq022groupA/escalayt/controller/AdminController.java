@@ -61,11 +61,11 @@ public class AdminController {
 
     /////------ USER/EMPLOYEE RELATED ADMIN ENDPOINTS -----\\\\\
 
-    @PostMapping("/register-user/{departmentId}")
-    public ResponseEntity<UserRegistrationResponse> registerUser(@RequestBody UserRegistrationDto userRegistrationDto, @PathVariable Long departmentId) throws MessagingException {
+    @PostMapping("/register-user")
+    public ResponseEntity<UserRegistrationResponse> registerUser(@RequestBody UserRegistrationDto userRegistrationDto) throws MessagingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        UserRegistrationResponse response = adminService.registerUser(currentUsername, userRegistrationDto, departmentId);
+        UserRegistrationResponse response = adminService.registerUser(currentUsername, userRegistrationDto);
         return ResponseEntity.ok(response);
     }
 
