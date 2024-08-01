@@ -50,6 +50,8 @@ public class Admin implements UserDetails {
 
     private String resetToken;
 
+    private String pictureUrl;
+
     private LocalDateTime tokenCreationDate;
 
 

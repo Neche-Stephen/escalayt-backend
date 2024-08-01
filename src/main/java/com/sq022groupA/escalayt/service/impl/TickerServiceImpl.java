@@ -11,16 +11,16 @@ import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.service.TicketService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,6 +84,83 @@ public class TickerServiceImpl implements TicketService {
         }
 
         return ticketRepository.findById(ticketId).get().getTicketComments();
+    }
+
+    public TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId,
+                                                Long commentId, String commenterUsername) {
+
+        // Check if user exists
+        User commentingUser = userRepository.findByUsername(commenterUsername).orElse(null);
+
+        // Get admin
+        Admin commentingAdmin = adminRepository.findByUsername(commenterUsername).orElse(null);
+
+        if (commentingUser == null && commentingAdmin == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        // Check if the ticket to be commented on exists
+        Ticket commentingTicket = ticketRepository.findById(ticketId).orElse(null);
+        if (commentingTicket == null) {
+            throw new DoesNotExistException("Ticket does not exist");
+        }
+
+        // Check if the parent comment exists
+        TicketComment parentComment = ticketCommentRepository.findById(commentId).orElse(null);
+        if (parentComment == null) {
+            throw new DoesNotExistException("Parent comment does not exist");
+        }
+
+        // Create and save the reply comment
+        TicketComment replyComment = TicketComment.builder()
+                .ticket(commentingTicket)
+                .comment(replyDto.getComment())
+                .commenter(commentingUser)
+                .adminCommenter(commentingAdmin)
+                .parentComment(parentComment)
+                .build();
+
+        ticketCommentRepository.save(replyComment);
+
+        // Return response
+        assert commentingUser != null;
+        return TicketCommentResponse.builder()
+                .responseCode("200")
+                .responseMessage("Comment replied successfully")
+                .ticketCommentInfo(TicketCommentInfo.builder()
+                        .createdAt(replyComment.getCreatedAt())
+                        .ticketTitle(replyComment.getTicket().getTitle())
+                        .comment(replyDto.getComment())
+                        .commenter(commentingUser.getFullName())
+                        .build())
+                .build();
+    }
+
+
+    public List<TicketCommentResponse> getCommentReplies(Long commentId, String username) {
+
+        // Check if user exists
+        User commentingUser = userRepository.findByUsername(username).orElse(null);
+
+        // Get admin
+        Admin commentingAdmin = adminRepository.findByUsername(username).orElse(null);
+        if (commentingUser == null && commentingAdmin == null) {
+            throw new UserNotFoundException("User Not found");
+        }
+
+        // Fetch the replies
+        List<TicketComment> replies = ticketCommentRepository.findByParentCommentId(commentId);
+
+        // Convert the replies to response DTOs
+        return replies.stream().map(reply -> TicketCommentResponse.builder()
+                .responseCode("200")
+                .responseMessage("Reply fetched")
+                .ticketCommentInfo(TicketCommentInfo.builder()
+                        .createdAt(reply.getCreatedAt())
+                        .ticketTitle(reply.getTicket().getTitle())
+                        .comment(reply.getComment())
+                        .build())
+                .build()).collect(Collectors.toList());
     }
 
 
@@ -360,7 +437,7 @@ public class TickerServiceImpl implements TicketService {
 //    @Override
 //    public List<Ticket> getLatestThreeOpenTickets(String userName) {
 //
-//        Admin admin = adminRepository.findByUsername(userName).orElse(null);
+//         = adminRepository.findByUsername(userName).orElse(null);
 //
 //        if(admin == null){
 //            throw new UserNotFoundException("You do not have proper authorization to make this action");
@@ -497,28 +574,45 @@ public class TickerServiceImpl implements TicketService {
         ticketRepository.save(ticket);
     }
 
+
+
     @Override
     public Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable) {
-      Page<Ticket> ticketsPage;
+        Page<Ticket> ticketsPage;
 
-      if("ADMIN".equals(role)){
-          ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
-      } else if("USER".equals(role)){
-          ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
-      } else {
-          throw new IllegalArgumentException("Invalid role: " + role);
-      }
+        if("ADMIN".equals(role)){
+            ticketsPage = ticketRepository.findAllByCreatedUnderOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+        } else if("USER".equals(role)){
+            ticketsPage = ticketRepository.findAllByCreatedByUserIdOrderByUpdatedAtDescCreatedAtDesc(id, pageable);
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
 
-        return ticketsPage.map(ticket -> new TicketActivitiesResponseDto(
-                ticket.getId(),
-                ticket.getTitle(),
-                ticket.getPriority().toString(),
-                ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null,
-                ticket.getStatus().toString(),
-                ticket.getTicketCategory().getName(),
-                ticket.getCreatedAt(),
-                ticket.getLocation()
-        ));
+        List<TicketActivitiesResponseDto> sortedDtos = ticketsPage.stream()
+                .map(ticket -> {
+                    long minuteDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
+
+                    if (ticket.getUpdatedAt() != null) {
+                        minuteDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+                    return new TicketActivitiesResponseDto(
+                            ticket.getId(),
+                            ticket.getTitle(),
+                            ticket.getPriority().toString(),
+                            ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null,
+                            ticket.getStatus().toString(),
+                            ticket.getTicketCategory().getName(),
+                            ticket.getCreatedAt(),
+                            ticket.getLocation(),
+                            minuteDifference // Assuming you want to include the minuteDifference in the DTO
+                    );
+                })
+                .sorted(Comparator.comparingLong(TicketActivitiesResponseDto::getMinuteDifference)) // Sorting by minuteDifference
+                .collect(Collectors.toList()); // Collect to a List
+
+        // Return a new Page with the sorted list
+        return new PageImpl<>(sortedDtos, ticketsPage.getPageable(), ticketsPage.getTotalElements());
     }
 
     @Override
@@ -532,21 +626,32 @@ public class TickerServiceImpl implements TicketService {
     }
 
 
+
+
     // assign ticket to assignee
     @Override
-    public String assignTicket(Long ticketId, Long assignId) {
+    public String assignTicket(Long ticketId, Long assignId, String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
         User userAssigned = userRepository.findById(assignId).orElse(null);
 
 
-        if(userAssigned == null){
+        if(admin == null){
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
 
+
+        if(userAssigned == null){
+            throw new UserNotFoundException("user does not exist to assign ticket to");
+        }
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
         ticket.setAssignee(userAssigned);
+        ticket.setUpdatedAt(LocalDateTime.now());
+        ticket.setStatus(Status.IN_PROGRESS);
 
         ticketRepository.save(ticket);
 
@@ -557,7 +662,7 @@ public class TickerServiceImpl implements TicketService {
 
     // get by created by
     @Override
-    public List<Ticket> getTicketByCreatedBy(String username) {
+    public List<NotificationTicketDto> getTicketByCreatedBy(String username) {
 
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -565,22 +670,76 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You cannot access this Tickets");
         }
 
-        return user.getCreatedTickets();
+        List <NotificationTicketDto> notificationTicketDto = user.getCreatedTickets().stream().map(ticket -> {
+
+                    long minutesDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
+
+                    if(ticket.getUpdatedAt() != null){
+                        minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+            return new NotificationTicketDto(
+                    ticket.getId(),  ticket.getTitle(),
+                    ticket.getStatus(),
+                    minutesDifference,
+                    CreatedByDto.builder()
+                            .id(ticket.getCreatedByUser().getId())
+                            .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
+                            .username( ticket.getCreatedByUser().getUsername())
+                            .build()
+            );
+                }
+
+        ).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+                .limit(7) // Limit to the first 7 elements
+                .collect(Collectors.toList());
+
+        return notificationTicketDto;
     }
+
+
 
     // get by created under
     @Override
-    public List<Ticket> getTicketByCreatedUnder(String username, Long adminId) {
+    public List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long createdUnderId) {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
-        if (admin == null || adminId != admin.getId()) {
+        if (admin == null || createdUnderId != admin.getId()) {
             throw new UserNotFoundException("You cannot access this tickets");
         }
 
-        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(adminId);
+        // reduces the notification to just seven.
+        Pageable topSeven = PageRequest.of(0, 7, Sort.by(Sort.Direction.DESC, "updatedAt", "createdAt"));
+        List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(createdUnderId, topSeven);
 
-        return tickets;
+
+        List<NotificationTicketDto> notificationTicketDto = tickets.stream()
+                .map(ticket -> {
+
+
+                    long minutesDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
+
+                    if(ticket.getUpdatedAt() != null){
+                        minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
+                    }
+
+
+                           return new NotificationTicketDto(
+                                    ticket.getId(), ticket.getTitle(),
+                                    ticket.getStatus(),
+                                    minutesDifference,
+                                    CreatedByDto.builder()
+                                            .id(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : ticket.getCreatedByUser().getId())
+                                            .pictureUrl(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getPictureUrl() : ticket.getCreatedByUser().getPictureUrl())
+                                            .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername() : ticket.getCreatedByUser().getUsername())
+                                            .build()
+
+                );}).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+                .limit(7) // Limit to the first 7 elements
+                .collect(Collectors.toList());
+
+        return notificationTicketDto;
     }
 
 }

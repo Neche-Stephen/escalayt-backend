@@ -272,7 +272,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setTokenCreationDate(LocalDateTime.now());
         adminRepository.save(admin);
 
-        String resetUrl = "http://localhost:8080/api/v1/auth/confirm-reset-password?token=" + token;
+        String resetUrl = "http://localhost:5173/reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()

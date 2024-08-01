@@ -51,6 +51,31 @@ public class TicketController {
         return ResponseEntity.ok(ticketCommentResponse);
     }
 
+    // reply a comment
+    @PostMapping("/{ticketId}/comment/{commentId}/reply")
+    public ResponseEntity<?> replyToComment(@PathVariable Long ticketId, @PathVariable Long commentId, @RequestBody TicketCommentReply replyDto) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Process the reply and return the response
+        TicketCommentResponse response = ticketService.replyToComment(replyDto, ticketId, commentId, currentUsername);
+        return ResponseEntity.ok(response);
+    }
+
+    // get all replies to a comment
+    @GetMapping("/comment/{commentId}/replies")
+    public ResponseEntity<List<TicketCommentResponse>> getCommentReplies(@PathVariable Long commentId) {
+
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Fetch the replies and return the response
+        List<TicketCommentResponse> replies = ticketService.getCommentReplies(commentId, currentUsername);
+        return ResponseEntity.ok(replies);
+    }
+
 
     //count tickets
     @GetMapping("/count")
@@ -254,9 +279,13 @@ public class TicketController {
     }
 
     @PutMapping("/assign-ticket/{id}")
-    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody Long assignId){
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody AssignTicketRequestDto requestDto){
 
-        String response = ticketService.assignTicket(id, assignId);
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        String response = ticketService.assignTicket(id, requestDto.getAssigneeId(), currentUsername);
         return ResponseEntity.ok(response);
     }
 
@@ -269,7 +298,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
 
         return ResponseEntity.ok(response);
     }
@@ -283,11 +312,13 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> response = ticketService.getTicketByCreatedBy(currentUsername);
+        List<NotificationTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
 
 
         return ResponseEntity.ok(response);
     }
+
+
 
 
 }
