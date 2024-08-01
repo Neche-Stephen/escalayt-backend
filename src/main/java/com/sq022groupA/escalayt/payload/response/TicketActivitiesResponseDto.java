@@ -21,4 +21,5 @@ public class TicketActivitiesResponseDto {
     private String category;
     private LocalDateTime dateCreated;
     private String location;
+    private long minuteDifference;
 }
