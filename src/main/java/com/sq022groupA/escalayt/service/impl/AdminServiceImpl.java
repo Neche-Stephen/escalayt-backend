@@ -451,11 +451,12 @@ public class AdminServiceImpl implements AdminService {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
+        List<User> userList = userRepository.findAllByCreatedUnder(admin.getId());
         if(admin == null){
             throw new UserNotFoundException("admin not found");
         }
 
-        List<AdminUserDetailsDto> userDetailsDto = admin.getUsers().stream()
+        List<AdminUserDetailsDto> userDetailsDto = userList.stream()
                 .map(user ->
                    new AdminUserDetailsDto(
                            user.getId(),

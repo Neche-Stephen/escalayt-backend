@@ -66,10 +66,10 @@ public interface TicketService {
     //List all recent ticket activities
     Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable);
 
-//    Admin getAdminId(String username);
-//
-//
-//    User getUserId(String username);
+    Admin getAdminId(String username);
+
+
+    User getUserId(String username);
 
 
     // assign a ticket

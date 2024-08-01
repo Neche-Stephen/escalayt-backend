@@ -120,7 +120,7 @@ public class AdminController {
 
 
     // get list of users
-    @GetMapping("/get-admin-details")
+    @GetMapping("/get-employeeList-details")
     public ResponseEntity<List<AdminUserDetailsDto>> getEmployeeDetails(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
