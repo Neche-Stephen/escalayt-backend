@@ -24,8 +24,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -406,6 +408,8 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
+
+
     private static String generateUserName(String fullName) {
         String firstFourLetters = fullName.replaceAll("\\s+", "").substring(0, Math.min(fullName.length(), 4)).toLowerCase();
         int randomNumbers = new Random().nextInt(900) + 100; // 3-digit random number
@@ -422,5 +426,48 @@ public class AdminServiceImpl implements AdminService {
         return password.toString();
     }
 
+
+    // new endpoint to get user detail
+    @Override
+    public AdminUserDetailsDto getAdminDetails(String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if(admin == null){
+            throw new UserNotFoundException("admin not found");
+        }
+        return AdminUserDetailsDto.builder()
+                .id(admin.getId())
+                .fullName(admin.getFirstName() + admin.getLastName())
+                .username(admin.getUsername())
+                .email(admin.getEmail())
+                .build();
+    }
+
+
+    // get the list of users
+    @Override
+    public List<AdminUserDetailsDto> getAllEmployee(String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if(admin == null){
+            throw new UserNotFoundException("admin not found");
+        }
+
+        List<AdminUserDetailsDto> userDetailsDto = admin.getUsers().stream()
+                .map(user ->
+                   new AdminUserDetailsDto(
+                           user.getId(),
+                            null,
+                            user.getFullName(),
+                            null,
+                            user.getPictureUrl(),
+                            user.getJobTitle()
+                    ))
+                .collect(Collectors.toList());
+
+        return userDetailsDto;
+    }
 
 }

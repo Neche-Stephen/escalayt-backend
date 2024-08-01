@@ -3,6 +3,7 @@ package com.sq022groupA.escalayt.service.impl;
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.exception.CustomException;
+import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.payload.request.*;
@@ -158,6 +159,23 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    // get user detail
+    @Override
+    public AdminUserDetailsDto getUserDetails(String username) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if(user == null){
+            throw new UserNotFoundException("admin not found");
+        }
+        return AdminUserDetailsDto.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .build();
+    }
+    }
 
 
-}
+

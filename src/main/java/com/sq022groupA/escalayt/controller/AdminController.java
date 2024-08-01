@@ -7,6 +7,7 @@ import com.sq022groupA.escalayt.exception.ErrorResponse;
 import com.sq022groupA.escalayt.payload.request.DepartmentRequestDto;
 import com.sq022groupA.escalayt.payload.request.UserDetailsDto;
 import com.sq022groupA.escalayt.payload.request.UserRegistrationDto;
+import com.sq022groupA.escalayt.payload.response.AdminUserDetailsDto;
 import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.service.DepartmentService;
@@ -107,4 +108,23 @@ public class AdminController {
 
     // get the user from the database.
 
+    // get admin info
+
+    @GetMapping("/get-admin-details")
+    public ResponseEntity<AdminUserDetailsDto> getAdminDetails(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return ResponseEntity.ok(adminService.getAdminDetails(username));
+    }
+
+
+    // get list of users
+    @GetMapping("/get-admin-details")
+    public ResponseEntity<List<AdminUserDetailsDto>> getEmployeeDetails(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return ResponseEntity.ok(adminService.getAllEmployee(username));
+    }
 }
