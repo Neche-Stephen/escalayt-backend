@@ -115,9 +115,17 @@ public class TicketController {
     }
 
     // get category name
-    @GetMapping("/category/name")
-    public List<String> getCategoryName(){
+//    @GetMapping("/category/name")
+//    public List<String> getCategoryName(){
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUsername = authentication.getName();
+//        return ticketService.getCategoryName(currentUsername);
+//    }
 
+    // Endpoint to fetch all categories
+    @GetMapping("/categories")
+    public List<CategoryDto> getCategoryDetails() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return ticketService.getCategoryName(currentUsername);

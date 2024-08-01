@@ -251,19 +251,36 @@ public class TickerServiceImpl implements TicketService {
         return ticketCategory.getTickets() ;
     }
 
-    public List<String> getCategoryName(String username){
-
+//    public List<String> getCategoryName(String username){
+//
+//        Admin admin = adminRepository.findByUsername(username).orElse(null);
+//        User user = userRepository.findByUsername(username).orElse(null);
+//        List<TicketCategory> categories;
+//        if(admin != null){
+//            categories = ticketCategoryRepository.findByCreatedUnder(admin.getId());
+//        }else {
+//            assert user != null;
+//            categories = ticketCategoryRepository.findByCreatedUnder(user.getCreatedUnder());
+//        }
+//
+//        return categories.stream().map(TicketCategory::getName).collect(Collectors.toList());
+//    }
+    @Override
+    public List<CategoryDto> getCategoryName(String username) {
         Admin admin = adminRepository.findByUsername(username).orElse(null);
         User user = userRepository.findByUsername(username).orElse(null);
         List<TicketCategory> categories;
-        if(admin != null){
+
+        if (admin != null) {
             categories = ticketCategoryRepository.findByCreatedUnder(admin.getId());
-        }else {
+        } else {
             assert user != null;
             categories = ticketCategoryRepository.findByCreatedUnder(user.getCreatedUnder());
         }
 
-        return categories.stream().map(TicketCategory::getName).collect(Collectors.toList());
+        return categories.stream()
+                .map(category -> new CategoryDto(category.getId(), category.getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
