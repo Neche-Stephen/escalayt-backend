@@ -184,9 +184,9 @@ public class TickerServiceImpl implements TicketService {
 
     private TicketCountResponse getAdminTicketCount(Long adminId) {
         Long totalTickets = ticketRepository.countTotalTicketsByAdminId(adminId);
-        Long openTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.OPEN);
-        Long inProgressTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countTicketsByAdminIdAndStatus(adminId, Status.RESOLVE);
+        Long openTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.OPEN);
+        Long inProgressTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.IN_PROGRESS);
+        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVE);
 
 
         return TicketCountResponse.builder()
