@@ -2,6 +2,7 @@ package com.sq022groupA.escalayt.service;
 
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.payload.request.*;
+import com.sq022groupA.escalayt.payload.response.AdminUserDetailsDto;
 import com.sq022groupA.escalayt.payload.response.LoginResponse;
 import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import jakarta.mail.MessagingException;
@@ -17,6 +18,6 @@ public interface UserService {
 
     String createToken(User user);
 
-
+    AdminUserDetailsDto getUserDetails(String username);
 
 }

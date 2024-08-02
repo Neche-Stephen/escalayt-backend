@@ -13,4 +13,5 @@ import lombok.NoArgsConstructor;
 public class AssignTicketRequestDto {
 
     private Long assigneeId;
+
 }
