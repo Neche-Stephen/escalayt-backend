@@ -438,7 +438,7 @@ public class AdminServiceImpl implements AdminService {
         }
         return AdminUserDetailsDto.builder()
                 .id(admin.getId())
-                .fullName(admin.getFirstName() + admin.getLastName())
+                .fullName(admin.getFirstName() +" "+ admin.getLastName())
                 .username(admin.getUsername())
                 .email(admin.getEmail())
                 .build();
