@@ -201,6 +201,28 @@ public class TickerServiceImpl implements TicketService {
                 .build()).collect(Collectors.toList());
     }
 
+    @Override
+    public List<AssigneeDTO> fetchAssignees(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (user == null && admin == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        List<User> assignees;
+        if (admin != null) {
+            assignees = ticketRepository.findAllAssignees();
+        } else {
+            assignees = ticketRepository.findAssigneesByUserId(user.getId());
+        }
+
+        return assignees.stream()
+                .map(assignee -> new AssigneeDTO(assignee.getFullName(), assignee.getJobTitle()))
+                .collect(Collectors.toList());
+
+    }
+
 
     @Override
     public TicketCountResponse getTicketCountByUsername(String username) {
