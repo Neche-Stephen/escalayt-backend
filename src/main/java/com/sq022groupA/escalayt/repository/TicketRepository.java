@@ -3,6 +3,7 @@ package com.sq022groupA.escalayt.repository;
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.Ticket;
+import com.sq022groupA.escalayt.entity.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -69,5 +70,11 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     // find all by created under
     List<Ticket> findAllByCreatedUnder(Long createdUnderId, Pageable pageable);
+
+    @Query("SELECT DISTINCT t.assignee FROM Ticket t WHERE t.createdByUser.id = :userId")
+    List<User> findAssigneesByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT DISTINCT t.assignee FROM Ticket t")
+    List<User> findAllAssignees();
 
 }

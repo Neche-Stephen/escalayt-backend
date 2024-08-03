@@ -89,6 +89,16 @@ public class TicketController {
     }
 
 
+    @GetMapping("/fetch-assignees")
+    public ResponseEntity<List<AssigneeDTO>> fetchAssignees() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AssigneeDTO> assignees = ticketService.fetchAssignees(currentUsername);
+        return ResponseEntity.ok(assignees);
+    }
+
+
 
     // create ticket category
     @PostMapping("/category/create")

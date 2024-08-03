@@ -94,4 +94,6 @@ public interface TicketService {
     TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId, Long commentId, String commenterUsername);
 
     List<TicketCommentResponse> getCommentReplies(Long commentId, String username);
+
+    List<AssigneeDTO> fetchAssignees(String username);
 }
