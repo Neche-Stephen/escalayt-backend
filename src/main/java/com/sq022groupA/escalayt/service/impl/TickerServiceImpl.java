@@ -74,16 +74,52 @@ public class TickerServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketComment> getTicketComments(Long ticketId) {
+    public List<TicketCommentDTO> getTicketComments(Long ticketId) {
 
-        // check if the ticket to be commented exist
-        Ticket commentingTicket = ticketRepository.findById(ticketId).orElse(null);
-        if(commentingTicket == null){
+        // find all ticket comments excluding replies
+        List<TicketComment> comments = ticketCommentRepository.findByTicketIdAndParentCommentIsNull(ticketId);
 
-            throw new DoesNotExistException("Ticket does not exist");
-        }
+        return comments.stream().map(comment -> {
+            TicketCommentDTO ticketCommentDTO = new TicketCommentDTO();
+            ticketCommentDTO.setId(comment.getId());
+            ticketCommentDTO.setComment(comment.getComment());
+            ticketCommentDTO.setCreatedAt(comment.getCreatedAt());
 
-        return ticketRepository.findById(ticketId).get().getTicketComments();
+            if (comment.getCommenter() != null) {
+                ticketCommentDTO.setFullName(comment.getCommenter().getFullName());
+                ticketCommentDTO.setProfileUrl(comment.getCommenter().getPictureUrl());
+            } else if (comment.getAdminCommenter() != null) {
+                ticketCommentDTO.setFullName(comment.getAdminCommenter().getFirstName() + " " + comment.getAdminCommenter().getLastName());
+                ticketCommentDTO.setProfileUrl(comment.getAdminCommenter().getPictureUrl());
+            }
+
+            return ticketCommentDTO;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TicketRepliesDTO> getRepliesForComment(Long commentId) {
+
+        // find all ticket replies excluding actual comments
+        List<TicketComment> replies = ticketCommentRepository.findByParentCommentId(commentId);
+
+        return replies.stream().map(reply -> {
+            TicketRepliesDTO ticketRepliesDTO = new TicketRepliesDTO();
+            ticketRepliesDTO.setId(reply.getId());
+            ticketRepliesDTO.setComment(reply.getComment());
+            ticketRepliesDTO.setCreatedAt(reply.getCreatedAt());
+
+            if(reply.getCommenter() != null){
+                ticketRepliesDTO.setFullName(reply.getCommenter().getFullName());
+                ticketRepliesDTO.setProfileUrl(reply.getCommenter().getPictureUrl());
+            }else if (reply.getAdminCommenter() != null) {
+                ticketRepliesDTO.setFullName(reply.getAdminCommenter().getFirstName() + " " + reply.getAdminCommenter().getLastName());
+                ticketRepliesDTO.setProfileUrl(reply.getAdminCommenter().getPictureUrl());
+            }
+
+            return ticketRepliesDTO;
+        }).collect(Collectors.toList());
+
     }
 
     public TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId,
@@ -122,8 +158,10 @@ public class TickerServiceImpl implements TicketService {
 
         ticketCommentRepository.save(replyComment);
 
+        String commenterName = (commentingUser != null) ? commentingUser.getFullName() :
+                commentingAdmin.getFirstName() + " " + commentingAdmin.getLastName();
+
         // Return response
-        assert commentingUser != null;
         return TicketCommentResponse.builder()
                 .responseCode("200")
                 .responseMessage("Comment replied successfully")
@@ -131,7 +169,7 @@ public class TickerServiceImpl implements TicketService {
                         .createdAt(replyComment.getCreatedAt())
                         .ticketTitle(replyComment.getTicket().getTitle())
                         .comment(replyDto.getComment())
-                        .commenter(commentingUser.getFullName())
+                        .commenter(commenterName)
                         .build())
                 .build();
     }
