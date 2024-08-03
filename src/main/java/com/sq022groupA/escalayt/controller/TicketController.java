@@ -306,7 +306,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<NotificationTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
 
         return ResponseEntity.ok(response);
     }
@@ -320,7 +320,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<NotificationTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
 
 
         return ResponseEntity.ok(response);

@@ -464,7 +464,8 @@ public class AdminServiceImpl implements AdminService {
                             user.getFullName(),
                             null,
                             user.getPictureUrl(),
-                            user.getJobTitle()
+                            user.getJobTitle(),
+                           null
                     ))
                 .collect(Collectors.toList());
 
