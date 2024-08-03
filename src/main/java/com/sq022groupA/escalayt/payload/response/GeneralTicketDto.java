@@ -7,19 +7,28 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NotificationTicketDto {
+public class GeneralTicketDto {
 
     private Long id;
+
     private String title;
+
     private Status status;
+
     private long minutesDifference;
-    private CreatedByDto createdByDto;
+
+    private AdminUserDetailsDto createdByUserDto;
+
+    private AdminUserDetailsDto createdByAdmin;
+
+    private  AdminUserDetailsDto assigneeDto;
+
+    private AdminUserDetailsDto resolvedByAdminDto;
+
+    private AdminUserDetailsDto resolvedByUserDto;
 
 }
