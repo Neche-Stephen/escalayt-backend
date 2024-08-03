@@ -25,9 +25,6 @@ public class Ticket extends BaseClass{
 
     private String location;
 
-//    @Enumerated(EnumType.STRING)
-//    private Category category;
-
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
@@ -75,7 +72,7 @@ public class Ticket extends BaseClass{
     private TicketCategory ticketCategory;
 
     // mapped ticket comment here
-    @OneToMany(mappedBy = "ticket")
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("ticketComments")
     private List<TicketComment> ticketComments;
 

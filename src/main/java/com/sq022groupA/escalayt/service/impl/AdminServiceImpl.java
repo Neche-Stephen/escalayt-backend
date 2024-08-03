@@ -445,7 +445,7 @@ public class AdminServiceImpl implements AdminService {
         }
         return AdminUserDetailsDto.builder()
                 .id(admin.getId())
-                .fullName(admin.getFirstName() + admin.getLastName())
+                .fullName(admin.getFirstName() +" "+ admin.getLastName())
                 .username(admin.getUsername())
                 .email(admin.getEmail())
                 .build();
@@ -471,7 +471,8 @@ public class AdminServiceImpl implements AdminService {
                             user.getFullName(),
                             null,
                             user.getPictureUrl(),
-                            user.getJobTitle()
+                            user.getJobTitle(),
+                           null
                     ))
                 .collect(Collectors.toList());
 

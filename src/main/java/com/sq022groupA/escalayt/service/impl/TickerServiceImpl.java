@@ -13,7 +13,6 @@ import com.sq022groupA.escalayt.service.TicketService;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,10 +21,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @RequiredArgsConstructor
 @Service
@@ -77,16 +73,52 @@ public class TickerServiceImpl implements TicketService {
     }
 
     @Override
-    public List<TicketComment> getTicketComments(Long ticketId) {
+    public List<TicketCommentDTO> getTicketComments(Long ticketId) {
 
-        // check if the ticket to be commented exist
-        Ticket commentingTicket = ticketRepository.findById(ticketId).orElse(null);
-        if(commentingTicket == null){
+        // find all ticket comments excluding replies
+        List<TicketComment> comments = ticketCommentRepository.findByTicketIdAndParentCommentIsNull(ticketId);
 
-            throw new DoesNotExistException("Ticket does not exist");
-        }
+        return comments.stream().map(comment -> {
+            TicketCommentDTO ticketCommentDTO = new TicketCommentDTO();
+            ticketCommentDTO.setId(comment.getId());
+            ticketCommentDTO.setComment(comment.getComment());
+            ticketCommentDTO.setCreatedAt(comment.getCreatedAt());
 
-        return ticketRepository.findById(ticketId).get().getTicketComments();
+            if (comment.getCommenter() != null) {
+                ticketCommentDTO.setFullName(comment.getCommenter().getFullName());
+                ticketCommentDTO.setProfileUrl(comment.getCommenter().getPictureUrl());
+            } else if (comment.getAdminCommenter() != null) {
+                ticketCommentDTO.setFullName(comment.getAdminCommenter().getFirstName() + " " + comment.getAdminCommenter().getLastName());
+                ticketCommentDTO.setProfileUrl(comment.getAdminCommenter().getPictureUrl());
+            }
+
+            return ticketCommentDTO;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TicketRepliesDTO> getRepliesForComment(Long commentId) {
+
+        // find all ticket replies excluding actual comments
+        List<TicketComment> replies = ticketCommentRepository.findByParentCommentId(commentId);
+
+        return replies.stream().map(reply -> {
+            TicketRepliesDTO ticketRepliesDTO = new TicketRepliesDTO();
+            ticketRepliesDTO.setId(reply.getId());
+            ticketRepliesDTO.setComment(reply.getComment());
+            ticketRepliesDTO.setCreatedAt(reply.getCreatedAt());
+
+            if(reply.getCommenter() != null){
+                ticketRepliesDTO.setFullName(reply.getCommenter().getFullName());
+                ticketRepliesDTO.setProfileUrl(reply.getCommenter().getPictureUrl());
+            }else if (reply.getAdminCommenter() != null) {
+                ticketRepliesDTO.setFullName(reply.getAdminCommenter().getFirstName() + " " + reply.getAdminCommenter().getLastName());
+                ticketRepliesDTO.setProfileUrl(reply.getAdminCommenter().getPictureUrl());
+            }
+
+            return ticketRepliesDTO;
+        }).collect(Collectors.toList());
+
     }
 
     public TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId,
@@ -125,8 +157,10 @@ public class TickerServiceImpl implements TicketService {
 
         ticketCommentRepository.save(replyComment);
 
+        String commenterName = (commentingUser != null) ? commentingUser.getFullName() :
+                commentingAdmin.getFirstName() + " " + commentingAdmin.getLastName();
+
         // Return response
-        assert commentingUser != null;
         return TicketCommentResponse.builder()
                 .responseCode("200")
                 .responseMessage("Comment replied successfully")
@@ -134,7 +168,7 @@ public class TickerServiceImpl implements TicketService {
                         .createdAt(replyComment.getCreatedAt())
                         .ticketTitle(replyComment.getTicket().getTitle())
                         .comment(replyDto.getComment())
-                        .commenter(commentingUser.getFullName())
+                        .commenter(commenterName)
                         .build())
                 .build();
     }
@@ -164,6 +198,28 @@ public class TickerServiceImpl implements TicketService {
                         .comment(reply.getComment())
                         .build())
                 .build()).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AssigneeDTO> fetchAssignees(String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (user == null && admin == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        List<User> assignees;
+        if (admin != null) {
+            assignees = ticketRepository.findAllAssignees();
+        } else {
+            assignees = ticketRepository.findAssigneesByUserId(user.getId());
+        }
+
+        return assignees.stream()
+                .map(assignee -> new AssigneeDTO(assignee.getFullName(), assignee.getJobTitle()))
+                .collect(Collectors.toList());
+
     }
 
 
@@ -710,7 +766,7 @@ public class TickerServiceImpl implements TicketService {
 
     // get by created by
     @Override
-    public List<NotificationTicketDto> getTicketByCreatedBy(String username) {
+    public List<GeneralTicketDto> getTicketByCreatedBy(String username) {
 
         User user = userRepository.findByUsername(username).orElse(null);
 
@@ -718,7 +774,7 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You cannot access this Tickets");
         }
 
-        List <NotificationTicketDto> notificationTicketDto = user.getCreatedTickets().stream().map(ticket -> {
+        List <GeneralTicketDto> generalTicketDto = user.getCreatedTickets().stream().map(ticket -> {
 
                     long minutesDifference = Duration.between(ticket.getCreatedAt(), LocalDateTime.now()).toMinutes();
 
@@ -726,30 +782,53 @@ public class TickerServiceImpl implements TicketService {
                         minutesDifference = Duration.between(ticket.getUpdatedAt(), LocalDateTime.now()).toMinutes();
                     }
 
-            return new NotificationTicketDto(
+            return new GeneralTicketDto(
                     ticket.getId(),  ticket.getTitle(),
                     ticket.getStatus(),
                     minutesDifference,
-                    CreatedByDto.builder()
+                    ticket.getCreatedByUser() != null ? (AdminUserDetailsDto.builder()
                             .id(ticket.getCreatedByUser().getId())
                             .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
                             .username( ticket.getCreatedByUser().getUsername())
-                            .build()
+                            .fullName(ticket.getCreatedByUser().getFullName())
+                            .build()): null,
+                    null,
+                    ticket.getAssignee() != null ?(AdminUserDetailsDto.builder()
+                            .pictureUrl(ticket.getAssignee().getPictureUrl())
+                            .fullName(ticket.getAssignee().getFullName())
+                            .id(ticket.getAssignee().getId())
+                            .username(ticket.getAssignee().getUsername())
+                            .build()): null,
+                    ticket.getResolvedByAdmin() != null ?(AdminUserDetailsDto.builder()
+                            .pictureUrl(ticket.getResolvedByAdmin().getPictureUrl())
+                            .fullName(ticket.getResolvedByAdmin().getFirstName()+" "+ ticket.getResolvedByAdmin().getLastName())
+                            .id(ticket.getResolvedByAdmin().getId())
+                            .username(ticket.getResolvedByAdmin().getUsername())
+                            .build()): null,
+                    ticket.getResolvedByUser() != null ?(AdminUserDetailsDto.builder()
+                            .pictureUrl(ticket.getResolvedByUser().getPictureUrl())
+                            .fullName(ticket.getResolvedByUser().getFullName())
+                            .id(ticket.getResolvedByUser().getId())
+                            .username(ticket.getResolvedByUser().getUsername())
+                            .build()): null
             );
                 }
 
-        ).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+
+
+
+        ).sorted(Comparator.comparingLong(GeneralTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
                 .limit(7) // Limit to the first 7 elements
                 .collect(Collectors.toList());
 
-        return notificationTicketDto;
+        return generalTicketDto;
     }
 
 
 
     // get by created under
     @Override
-    public List<NotificationTicketDto> getTicketByCreatedUnder(String username, Long createdUnderId) {
+    public List<GeneralTicketDto> getTicketByCreatedUnder(String username, Long createdUnderId) {
 
         Admin admin = adminRepository.findByUsername(username).orElse(null);
 
@@ -762,7 +841,7 @@ public class TickerServiceImpl implements TicketService {
         List<Ticket> tickets = ticketRepository.findAllByCreatedUnder(createdUnderId, topSeven);
 
 
-        List<NotificationTicketDto> notificationTicketDto = tickets.stream()
+        List<GeneralTicketDto> generalTicketDto = tickets.stream()
                 .map(ticket -> {
 
 
@@ -773,21 +852,46 @@ public class TickerServiceImpl implements TicketService {
                     }
 
 
-                           return new NotificationTicketDto(
+                           return new GeneralTicketDto(
                                     ticket.getId(), ticket.getTitle(),
                                     ticket.getStatus(),
                                     minutesDifference,
-                                    CreatedByDto.builder()
-                                            .id(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : ticket.getCreatedByUser().getId())
-                                            .pictureUrl(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getPictureUrl() : ticket.getCreatedByUser().getPictureUrl())
-                                            .username(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getUsername() : ticket.getCreatedByUser().getUsername())
-                                            .build()
+                                   ticket.getCreatedByUser() != null ? (AdminUserDetailsDto.builder()
+                                           .id(ticket.getCreatedByUser().getId())
+                                           .pictureUrl( ticket.getCreatedByUser().getPictureUrl())
+                                           .username( ticket.getCreatedByUser().getUsername())
+                                           .fullName(ticket.getCreatedByUser().getFullName())
+                                           .build()): null,
+                                   ticket.getCreatedByAdmin() != null ? (AdminUserDetailsDto.builder()
+                                           .id(ticket.getCreatedByAdmin().getId())
+                                           .pictureUrl( ticket.getCreatedByAdmin().getPictureUrl())
+                                           .username( ticket.getCreatedByAdmin().getUsername())
+                                           .fullName(ticket.getCreatedByAdmin().getFirstName() +" "+ ticket.getCreatedByAdmin().getLastName())
+                                           .build()): null,
+                                   ticket.getAssignee() != null ?(AdminUserDetailsDto.builder()
+                                           .pictureUrl(ticket.getAssignee().getPictureUrl())
+                                           .fullName(ticket.getAssignee().getFullName())
+                                           .id(ticket.getAssignee().getId())
+                                           .username(ticket.getAssignee().getUsername())
+                                           .build()): null,
+                                   ticket.getResolvedByAdmin() != null ?(AdminUserDetailsDto.builder()
+                                           .pictureUrl(ticket.getResolvedByAdmin().getPictureUrl())
+                                           .fullName(ticket.getResolvedByAdmin().getFirstName()+" "+ ticket.getResolvedByAdmin().getLastName())
+                                           .id(ticket.getResolvedByAdmin().getId())
+                                           .username(ticket.getResolvedByAdmin().getUsername())
+                                           .build()): null,
+                                   ticket.getResolvedByUser() != null ?(AdminUserDetailsDto.builder()
+                                           .pictureUrl(ticket.getResolvedByUser().getPictureUrl())
+                                           .fullName(ticket.getResolvedByUser().getFullName())
+                                           .id(ticket.getResolvedByUser().getId())
+                                           .username(ticket.getResolvedByUser().getUsername())
+                                           .build()): null
 
-                );}).sorted(Comparator.comparingLong(NotificationTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
+                );}).sorted(Comparator.comparingLong(GeneralTicketDto::getMinutesDifference)) // Sort by minutesDifference in ascending order
                 .limit(7) // Limit to the first 7 elements
                 .collect(Collectors.toList());
 
-        return notificationTicketDto;
+        return generalTicketDto;
     }
 
 
