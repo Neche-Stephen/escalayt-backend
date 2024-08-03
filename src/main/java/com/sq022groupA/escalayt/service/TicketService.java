@@ -19,7 +19,10 @@ public interface TicketService {
     TicketCommentResponse createTicketComment(TicketCommentRequestDto commentRequestDto, Long ticketId, String commenter);
 
     // get all the comment made under a particular ticket
-    List<TicketComment> getTicketComments(Long ticketId);
+    List<TicketCommentDTO> getTicketComments(Long ticketId);
+
+    // get all the replies
+    List<TicketRepliesDTO> getRepliesForComment(Long commentId);
 
 
 //    TicketCountResponse getAdminTicketCount(Long adminId);
@@ -94,4 +97,6 @@ public interface TicketService {
     TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId, Long commentId, String commenterUsername);
 
     List<TicketCommentResponse> getCommentReplies(Long commentId, String username);
+
+    List<AssigneeDTO> fetchAssignees(String username);
 }

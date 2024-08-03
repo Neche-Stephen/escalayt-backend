@@ -28,18 +28,15 @@ public class TicketController {
 
     private final TicketService ticketService;
 
-    @GetMapping("/category/ticket/{id}/get-comments")
-    public ResponseEntity<?> ticketComment(@PathVariable Long id){
-        // get the list of the comments
-        List<TicketComment> response = ticketService.getTicketComments(id);
-
-        // return the response
-        return ResponseEntity.ok(response);
+    // get all comments for a ticket
+    @GetMapping("/{ticketId}/get-comments")
+    public List<TicketCommentDTO> getCommentsForTicket(@PathVariable Long ticketId) {
+        return ticketService.getTicketComments(ticketId);
     }
 
 
     // create a new comment
-    @PostMapping("/category/ticket/{id}/create-comment")
+    @PostMapping("/{id}/create-comment")
     public ResponseEntity<?> createComment(@PathVariable Long id, @RequestBody TicketCommentRequestDto ticketCommentRequestDto){
 
         // Get the currently authenticated user from the security context
@@ -51,8 +48,8 @@ public class TicketController {
         return ResponseEntity.ok(ticketCommentResponse);
     }
 
-    // reply a comment
-    @PostMapping("/{ticketId}/comment/{commentId}/reply")
+    // reply to a comment
+    @PostMapping("/{ticketId}/comment/{commentId}/create-reply")
     public ResponseEntity<?> replyToComment(@PathVariable Long ticketId, @PathVariable Long commentId, @RequestBody TicketCommentReply replyDto) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -61,6 +58,12 @@ public class TicketController {
         // Process the reply and return the response
         TicketCommentResponse response = ticketService.replyToComment(replyDto, ticketId, commentId, currentUsername);
         return ResponseEntity.ok(response);
+    }
+
+    // get all comments for a ticket
+    @GetMapping("/ticket/{commentId}/replies")
+    public List<TicketRepliesDTO> getRepliesForComment(@PathVariable Long commentId) {
+        return ticketService.getRepliesForComment(commentId);
     }
 
     // get all replies to a comment
@@ -86,6 +89,16 @@ public class TicketController {
 
         TicketCountResponse response = ticketService.getTicketCountByUsername(currentUsername);
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/fetch-assignees")
+    public ResponseEntity<List<AssigneeDTO>> fetchAssignees() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AssigneeDTO> assignees = ticketService.fetchAssignees(currentUsername);
+        return ResponseEntity.ok(assignees);
     }
 
 
@@ -202,7 +215,7 @@ public class TicketController {
             @RequestParam(required = false) List<Long> assigneeId,
             @RequestParam(required = false) List<Long> categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "7") int size) {
+            @RequestParam(defaultValue = "14") int size) {
 
         Page<TicketResponse> tickets = ticketService.filterTicketsWithPagination(priority, status, assigneeId, categoryId, page, size);
         return ResponseEntity.ok(tickets);

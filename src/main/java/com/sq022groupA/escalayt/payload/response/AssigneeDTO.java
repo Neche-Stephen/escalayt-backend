@@ -13,4 +13,9 @@ public class AssigneeDTO {
     private String jobTitle;
     private String phoneNumber;
 
+    public AssigneeDTO(String fullName, String jobTitle) {
+        this.fullName = fullName;
+
+        this.jobTitle = jobTitle;
+    }
 }
