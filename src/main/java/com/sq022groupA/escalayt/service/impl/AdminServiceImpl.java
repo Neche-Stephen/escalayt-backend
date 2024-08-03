@@ -10,6 +10,7 @@ import com.sq022groupA.escalayt.service.DepartmentService;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
+import com.sq022groupA.escalayt.utils.UniqueIdGenerator;
 import com.sq022groupA.escalayt.utils.UserRegistrationEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -76,8 +77,14 @@ public class AdminServiceImpl implements AdminService {
         Set<Role> roles = new HashSet<>();
         roles.add(userRole.get());
 
+        // Generate a unique Long ID
+        Long uniqueId;
+        do {
+            uniqueId = UniqueIdGenerator.generateUniqueLongId();
+        } while (adminRepository.existsById(uniqueId));  // Check if Long ID exists in the database
 
         Admin newUser = Admin.builder()
+                .id(uniqueId)  // Set the unique Long ID
                 .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
                 .username(registrationRequest.getUserName())

@@ -47,8 +47,12 @@ public class NotificationService {
 //    }
 
 public void sendNotificationToUser(Long userId, NotificationRequest request) throws ExecutionException, InterruptedException {
+    System.out.println("ADMIN ID FROM SERVICE METHOD" + userId);
     // Retrieve tokens for the specific user using the service method
     List<NotificationToken> tokens = notificationTokenService.getTokensByUserId(userId);
+
+//    NotificationToken token = tokens.get(0);
+//    System.out.println(" FIRST TOKEN " + tokens.get(0).toString());
 
     // Check if tokens are found
     if (tokens.isEmpty()) {
@@ -59,6 +63,7 @@ public void sendNotificationToUser(Long userId, NotificationRequest request) thr
     for (NotificationToken token : tokens) {
         request.setToken(token.getToken());
         fcmService.sendMessageToToken(request);
+//        System.out.println("notification sent from inside service method");
     }
 }
 

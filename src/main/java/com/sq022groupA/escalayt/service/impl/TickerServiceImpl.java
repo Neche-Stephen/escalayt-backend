@@ -16,9 +16,11 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,6 +36,7 @@ public class TickerServiceImpl implements TicketService {
     private final TicketCommentRepository ticketCommentRepository;
     private final TicketCategoryRepository ticketCategoryRepository;
     private final AdminRepository adminRepository;
+    private final NotificationService notificationService;
 
 
 
@@ -358,6 +361,34 @@ public class TickerServiceImpl implements TicketService {
                 .priority(ticketRequest.getPriority())
                 .status(Status.OPEN)
                 .build());
+
+        // Send notification after ticket creation to Admin if ticket is created by user.
+        try {
+            if ( userCreator != null){
+                // Creator is User, get Admin Id and send notification
+                List<Admin> admins = adminRepository.findAll(); // Fetch all admins
+                System.out.println("ADMINS " + admins);
+                if (admins.isEmpty()) {
+                    throw new RuntimeException("No Admins found to notify");
+                }
+                Long adminId = admins.get(0).getId(); // Get the ID of the first Admin (We only have one admin)
+                System.out.println("ADMIN ID " + adminId);
+                NotificationRequest notificationRequest = new NotificationRequest();
+
+                notificationRequest.setTitle("New Ticket Created");
+                notificationRequest.setBody("A new ticket has been created with title: " + ticket.getTitle());
+                notificationRequest.setTopic("Ticket Notifications");
+
+                notificationService.sendNotificationToUser(adminId, notificationRequest);
+            }
+
+            // Long userId = userCreator != null ? userCreator.getId() : adminCreator.getId();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+        }
+
+
 
 
         return TicketResponseDto.builder()
