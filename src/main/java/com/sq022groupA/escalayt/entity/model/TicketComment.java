@@ -42,6 +42,8 @@ public class TicketComment extends BaseClass{
 
     private String comment;
 
+    private String fileUrl;
+
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
