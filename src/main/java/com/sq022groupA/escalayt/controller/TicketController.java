@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -137,11 +138,26 @@ public class TicketController {
 
     // create ticket category
     @PostMapping("/category/{id}/ticket/create-ticket")
-    public ResponseEntity<?> createTicket(@PathVariable Long id , @RequestBody TicketRequestDto ticketRequestDto){
+    public ResponseEntity<?> createTicket(@PathVariable Long id ,
+                                          @RequestParam("title") String title,
+                                          @RequestParam("location") String location,
+                                          @RequestParam("priority") Priority priority,
+                                          @RequestParam("description") String description,
+                                          @RequestParam("file") MultipartFile file,
+                                          @RequestParam("fileTitle") String fileTitle){
 
         // get the user from security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
+
+        // Create a new ticket using the service layer
+        TicketRequestDto ticketRequestDto = new TicketRequestDto();
+        ticketRequestDto.setTitle(title);
+        ticketRequestDto.setLocation(location);
+        ticketRequestDto.setPriority(priority);
+        ticketRequestDto.setDescription(description);
+        ticketRequestDto.setFile(file);
+        ticketRequestDto.setFileTitle(fileTitle);
 
         // create new ticket
         TicketResponseDto response = ticketService.createTicket(id, ticketRequestDto, currentUsername);

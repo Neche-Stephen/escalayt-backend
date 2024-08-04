@@ -28,4 +28,7 @@ public class TicketDTOs {
     private Long createdByUserId;
     private Long createdByAdminId;
     private CreatedByUserDTO createdByUser;
+    private String fileUrl;
+    private String fileTitle;
+
 }

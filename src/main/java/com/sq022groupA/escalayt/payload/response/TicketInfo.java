@@ -21,5 +21,8 @@ public class TicketInfo {
     private Long createdUnder;
 
     private LocalDateTime createdAt;
+
+    // New field for file URL
+    private String fileUrl;
 }
 
