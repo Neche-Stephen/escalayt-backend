@@ -15,9 +15,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,7 @@ public class TickerServiceImpl implements TicketService {
     private final TicketCommentRepository ticketCommentRepository;
     private final TicketCategoryRepository ticketCategoryRepository;
     private final AdminRepository adminRepository;
+    private final NotificationService notificationService;
 
 
 
@@ -415,6 +418,10 @@ public class TickerServiceImpl implements TicketService {
                 .status(Status.OPEN)
                 .build());
 
+        //
+
+
+
 
         return TicketResponseDto.builder()
                 .responseCode("111")
@@ -505,20 +512,6 @@ public class TickerServiceImpl implements TicketService {
                 .assignee(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
                 .build();
     }
-
-    // Method to get the latest or recent open tickets
-//    @Override
-//    public List<Ticket> getLatestThreeOpenTickets(String userName) {
-//
-//         = adminRepository.findByUsername(userName).orElse(null);
-//
-//        if(admin == null){
-//            throw new UserNotFoundException("You do not have proper authorization to make this action");
-//        }
-//        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
-//    }
-
-
 
 
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
@@ -727,6 +720,8 @@ public class TickerServiceImpl implements TicketService {
         ticket.setStatus(Status.IN_PROGRESS);
 
         ticketRepository.save(ticket);
+
+        //
 
         return "Ticket Assign successful";
 

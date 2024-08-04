@@ -32,6 +32,8 @@ public class Ticket extends BaseClass{
 
     private Long createdUnder;
 
+    private String fileUrl;
+
 
     @Enumerated(EnumType.STRING)
     private Status status;
