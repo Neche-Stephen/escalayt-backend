@@ -93,6 +93,16 @@ public class TicketController {
     }
 
 
+    @GetMapping("/fetch-assignees")
+    public ResponseEntity<List<AssigneeDTO>> fetchAssignees() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AssigneeDTO> assignees = ticketService.fetchAssignees(currentUsername);
+        return ResponseEntity.ok(assignees);
+    }
+
+
 
     // create ticket category
     @PostMapping("/category/create")
@@ -325,7 +335,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<NotificationTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
 
         return ResponseEntity.ok(response);
     }
@@ -339,7 +349,7 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<NotificationTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
 
 
         return ResponseEntity.ok(response);

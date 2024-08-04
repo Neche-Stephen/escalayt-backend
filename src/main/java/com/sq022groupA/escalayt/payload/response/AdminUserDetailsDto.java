@@ -24,4 +24,6 @@ public class AdminUserDetailsDto {
 
    private String jobTitle;
 
+   private String department;
+
 }
