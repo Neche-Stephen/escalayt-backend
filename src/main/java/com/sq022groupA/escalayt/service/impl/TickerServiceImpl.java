@@ -1,5 +1,7 @@
 package com.sq022groupA.escalayt.service.impl;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.*;
@@ -15,6 +17,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Service
@@ -32,6 +37,7 @@ public class TickerServiceImpl implements TicketService {
     private final TicketCommentRepository ticketCommentRepository;
     private final TicketCategoryRepository ticketCategoryRepository;
     private final AdminRepository adminRepository;
+    private final Cloudinary cloudinary;
     private final NotificationService notificationService;
 
 
@@ -395,8 +401,6 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("user not found");
         }
 
-
-
         // get category
         TicketCategory ticketCategory = ticketCategoryRepository.findById(catId).orElse(null);
 
@@ -404,6 +408,16 @@ public class TickerServiceImpl implements TicketService {
             throw new DoesNotExistException("Ticket Category does not exist");
         }
 
+        String fileUrl = null;
+        MultipartFile file = ticketRequest.getFile();
+        if (file != null && !file.isEmpty()) {
+            try {
+                Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+                fileUrl = uploadResult.get("url").toString();
+            } catch (Exception e) {
+                throw new RuntimeException("Error uploading file to Cloudinary", e);
+            }
+        }
 
 
         Ticket ticket= ticketRepository.save(Ticket.builder()
@@ -416,6 +430,8 @@ public class TickerServiceImpl implements TicketService {
                 .location(ticketRequest.getLocation())
                 .priority(ticketRequest.getPriority())
                 .status(Status.OPEN)
+                .fileUrl(fileUrl)
+                .fileTitle(ticketRequest.getFileTitle())
                 .build());
 
         //
@@ -430,6 +446,7 @@ public class TickerServiceImpl implements TicketService {
                         .title(ticket.getTitle())
                         .createdAt(ticket.getCreatedAt())
                         .createdUnder(ticket.getCreatedUnder())
+                        .fileUrl(fileUrl)
                         .build())
                 .build();
     }
@@ -602,6 +619,8 @@ public class TickerServiceImpl implements TicketService {
                 .createdByUserId(ticket.getCreatedByUser() != null ? ticket.getCreatedByUser().getId() : null)
                 .createdByAdminId(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getId() : null)
                 .createdByUser(createdByUserDTO)
+                .fileUrl(ticket.getFileUrl())
+                .fileTitle(ticket.getFileTitle())
                 .build();
     }
 

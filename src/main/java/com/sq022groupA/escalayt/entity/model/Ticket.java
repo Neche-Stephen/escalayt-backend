@@ -32,9 +32,6 @@ public class Ticket extends BaseClass{
 
     private Long createdUnder;
 
-    private String fileUrl;
-
-
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -64,6 +61,10 @@ public class Ticket extends BaseClass{
     // review for the ticket rating
     private String review;
 
+    // New field for file URL
+    private String fileUrl;
+
+    private String fileTitle;
 
     // map category
     @ManyToOne(fetch = FetchType.EAGER)

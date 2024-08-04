@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
@@ -20,5 +21,10 @@ public class TicketRequestDto {
     private Priority priority;
 
     private String description;
+
+    // New field for the file
+    private MultipartFile file;
+
+    private String fileTitle;
 
 }
