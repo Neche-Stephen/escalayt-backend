@@ -418,31 +418,7 @@ public class TickerServiceImpl implements TicketService {
                 .status(Status.OPEN)
                 .build());
 
-        // Send notification after ticket creation to Admin if ticket is created by user.
-        try {
-            if ( userCreator != null){
-                // Creator is User, get Admin Id and send notification
-                List<Admin> admins = adminRepository.findAll(); // Fetch all admins
-                System.out.println("ADMINS " + admins);
-                if (admins.isEmpty()) {
-                    throw new RuntimeException("No Admins found to notify");
-                }
-                Long adminId = admins.get(0).getId(); // Get the ID of the first Admin (We only have one admin)
-                System.out.println("ADMIN ID " + adminId);
-                NotificationRequest notificationRequest = new NotificationRequest();
-
-                notificationRequest.setTitle("New Ticket Created");
-                notificationRequest.setBody("A new ticket has been created with title: " + ticket.getTitle());
-                notificationRequest.setTopic("Ticket Notifications");
-
-                notificationService.sendNotificationToUser(adminId, notificationRequest);
-            }
-
-            // Long userId = userCreator != null ? userCreator.getId() : adminCreator.getId();
-
-        } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace(); // Handle the exception appropriately
-        }
+        //
 
 
 
@@ -536,20 +512,6 @@ public class TickerServiceImpl implements TicketService {
                 .assignee(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
                 .build();
     }
-
-    // Method to get the latest or recent open tickets
-//    @Override
-//    public List<Ticket> getLatestThreeOpenTickets(String userName) {
-//
-//         = adminRepository.findByUsername(userName).orElse(null);
-//
-//        if(admin == null){
-//            throw new UserNotFoundException("You do not have proper authorization to make this action");
-//        }
-//        return ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.OPEN, admin.getId());
-//    }
-
-
 
 
     public List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId) {
@@ -758,6 +720,8 @@ public class TickerServiceImpl implements TicketService {
         ticket.setStatus(Status.IN_PROGRESS);
 
         ticketRepository.save(ticket);
+
+        //
 
         return "Ticket Assign successful";
 
