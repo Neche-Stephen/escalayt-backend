@@ -25,9 +25,28 @@ public class FCMService {
         logger.info("Sent message to token. Device token: " + request.getToken() + ", " + response+ " msg "+jsonOutput);
     }
 
+//    private String sendAndGetResponse(Message message) throws InterruptedException, ExecutionException {
+//        return FirebaseMessaging.getInstance().sendAsync(message).get();
+//    }
+
     private String sendAndGetResponse(Message message) throws InterruptedException, ExecutionException {
-        return FirebaseMessaging.getInstance().sendAsync(message).get();
+        try {
+            return FirebaseMessaging.getInstance().sendAsync(message).get();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof FirebaseMessagingException) {
+                FirebaseMessagingException fme = (FirebaseMessagingException) e.getCause();
+                if ("UNREGISTERED".equals(fme.getMessagingErrorCode().name())) {
+                    // Handle the unregistered token, e.g., remove from database
+                    logger.error("Token is unregistered. Removing token from database.");
+                }
+                else{
+                    logger.error("Oh boy");
+                }
+            }
+            throw e;
+        }
     }
+
 
 
     private AndroidConfig getAndroidConfig(String topic) {

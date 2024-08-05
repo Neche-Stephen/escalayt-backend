@@ -42,6 +42,8 @@ public class TicketComment extends BaseClass{
 
     private String comment;
 
+    private String fileUrl;
+
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
@@ -52,5 +54,13 @@ public class TicketComment extends BaseClass{
     @JoinColumn(name = "commenter_id")
     @JsonBackReference
     private User commenter;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_commenter_id")
+    private Admin adminCommenter;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_comment_id")
+    private TicketComment parentComment;
 
 }

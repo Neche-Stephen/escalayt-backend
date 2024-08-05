@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,11 +27,12 @@ import java.util.stream.Collectors;
 public class Admin implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     private String firstName;
@@ -50,6 +53,8 @@ public class Admin implements UserDetails {
 
     private String resetToken;
 
+    private String pictureUrl;
+
     private LocalDateTime tokenCreationDate;
 
 
@@ -65,6 +70,12 @@ public class Admin implements UserDetails {
     @JsonManagedReference
     @JsonIgnoreProperties("createdBy")
     private List<TicketCategory> ticketCategories;
+
+    // the mapping the department
+    @OneToMany(mappedBy = "departmentCreatedBy")
+    @JsonManagedReference
+    @JsonIgnoreProperties("departmentCreatedBy")
+    private List<Department> departmentList;
 
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -109,3 +120,14 @@ public class Admin implements UserDetails {
         return enabled;
     };
 }
+
+/*
+
+Extra task:
+[11:01 pm] Chinecherem Ubawike
+Alright can you do that?
+It should take the id of the ticket and and id of the user to be assigned?
+then update the ticket by updating the assignee column with the id of the user
+
+
+ */

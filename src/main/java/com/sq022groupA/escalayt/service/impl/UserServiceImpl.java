@@ -3,6 +3,7 @@ package com.sq022groupA.escalayt.service.impl;
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.exception.CustomException;
+import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
 import com.sq022groupA.escalayt.payload.request.*;
@@ -107,7 +108,7 @@ public class UserServiceImpl implements UserService {
         user.setTokenCreationDate(LocalDateTime.now());
         userRepository.save(user);
 
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetUrl = "http://localhost:5173/reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
@@ -157,4 +158,24 @@ public class UserServiceImpl implements UserService {
         return jwtToken;
     }
 
-}
+
+    // get user detail
+    @Override
+    public AdminUserDetailsDto getUserDetails(String username) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if(user == null){
+            throw new UserNotFoundException("admin not found");
+        }
+        return AdminUserDetailsDto.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .build();
+    }
+    }
+
+
+

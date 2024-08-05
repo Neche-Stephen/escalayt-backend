@@ -16,10 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,28 +29,15 @@ public class TicketController {
 
     private final TicketService ticketService;
 
-
-    @GetMapping("/get")
-    public String helloWorld(){
-        return "Hello World!!!";
-    }
-
-
-    @GetMapping("/category/ticket/{id}/get-comments")
-    public ResponseEntity<?> ticketComment(@PathVariable Long id){
-
-
-        // get the list of the comments
-        List<TicketComment> response = ticketService.getTicketComments(id);
-
-
-        // return the response
-        return ResponseEntity.ok(response);
+    // get all comments for a ticket
+    @GetMapping("/{ticketId}/get-comments")
+    public List<TicketCommentDTO> getCommentsForTicket(@PathVariable Long ticketId) {
+        return ticketService.getTicketComments(ticketId);
     }
 
 
     // create a new comment
-    @PostMapping("/category/ticket/{id}/create-comment")
+    @PostMapping("/{id}/create-comment")
     public ResponseEntity<?> createComment(@PathVariable Long id, @RequestBody TicketCommentRequestDto ticketCommentRequestDto){
 
         // Get the currently authenticated user from the security context
@@ -60,9 +46,38 @@ public class TicketController {
 
         // update the db and return response
         TicketCommentResponse ticketCommentResponse = ticketService.createTicketComment(ticketCommentRequestDto, id, currentUsername);
-
-
         return ResponseEntity.ok(ticketCommentResponse);
+    }
+
+    // reply to a comment
+    @PostMapping("/{ticketId}/comment/{commentId}/create-reply")
+    public ResponseEntity<?> replyToComment(@PathVariable Long ticketId, @PathVariable Long commentId, @RequestBody TicketCommentReply replyDto) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Process the reply and return the response
+        TicketCommentResponse response = ticketService.replyToComment(replyDto, ticketId, commentId, currentUsername);
+        return ResponseEntity.ok(response);
+    }
+
+    // get all comments for a ticket
+    @GetMapping("/ticket/{commentId}/replies")
+    public List<TicketRepliesDTO> getRepliesForComment(@PathVariable Long commentId) {
+        return ticketService.getRepliesForComment(commentId);
+    }
+
+    // get all replies to a comment
+    @GetMapping("/comment/{commentId}/replies")
+    public ResponseEntity<List<TicketCommentResponse>> getCommentReplies(@PathVariable Long commentId) {
+
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Fetch the replies and return the response
+        List<TicketCommentResponse> replies = ticketService.getCommentReplies(commentId, currentUsername);
+        return ResponseEntity.ok(replies);
     }
 
 
@@ -74,8 +89,17 @@ public class TicketController {
         String currentUsername = authentication.getName();
 
         TicketCountResponse response = ticketService.getTicketCountByUsername(currentUsername);
-
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/fetch-assignees")
+    public ResponseEntity<List<AssigneeDTO>> fetchAssignees() {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AssigneeDTO> assignees = ticketService.fetchAssignees(currentUsername);
+        return ResponseEntity.ok(assignees);
     }
 
 
@@ -97,23 +121,53 @@ public class TicketController {
     @GetMapping("/category/{id}")
     public ResponseEntity<?> getTicketsByCat(@PathVariable Long id){
 
-
         // get the list of the comments
         List<Ticket> response = ticketService.getTicketByCategory(id);
-
 
         // return the response
         return ResponseEntity.ok(response);
     }
 
+    // get category name
+//    @GetMapping("/category/name")
+//    public List<String> getCategoryName(){
+//
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentUsername = authentication.getName();
+//        return ticketService.getCategoryName(currentUsername);
+//    }
+
+    // Endpoint to fetch all categories
+    @GetMapping("/categories")
+    public List<CategoryDto> getCategoryDetails() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ticketService.getCategoryName(currentUsername);
+    }
+
 
     // create ticket category
     @PostMapping("/category/{id}/ticket/create-ticket")
-    public ResponseEntity<?> createTicket(@PathVariable Long id , @RequestBody TicketRequestDto ticketRequestDto){
+    public ResponseEntity<?> createTicket(@PathVariable Long id ,
+                                          @RequestParam("title") String title,
+                                          @RequestParam("location") String location,
+                                          @RequestParam("priority") Priority priority,
+                                          @RequestParam("description") String description,
+                                          @RequestParam("file") MultipartFile file,
+                                          @RequestParam("fileTitle") String fileTitle){
 
         // get the user from security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
+
+        // Create a new ticket using the service layer
+        TicketRequestDto ticketRequestDto = new TicketRequestDto();
+        ticketRequestDto.setTitle(title);
+        ticketRequestDto.setLocation(location);
+        ticketRequestDto.setPriority(priority);
+        ticketRequestDto.setDescription(description);
+        ticketRequestDto.setFile(file);
+        ticketRequestDto.setFileTitle(fileTitle);
 
         // create new ticket
         TicketResponseDto response = ticketService.createTicket(id, ticketRequestDto, currentUsername);
@@ -134,8 +188,28 @@ public class TicketController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        List<Ticket> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
+        List<TicketDto> openTickets = ticketService.getLatestThreeOpenTickets(currentUsername);
         return ResponseEntity.ok(openTickets);
+    }
+
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/resolved-tickets")
+    public ResponseEntity<?> getLatestThreeResolvedTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeResolvedTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
+    }
+
+    // Endpoint to get the latest 3 resolved tickets for only admin
+    @GetMapping("/admin/inprogres-tickets")
+    public ResponseEntity<?> getLatestThreeInprogressTickets() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<TicketDto> resolvedTickets = ticketService.getLatestThreeInprogressTickets(currentUsername);
+        return ResponseEntity.ok(resolvedTickets);
     }
 
     // filter ticket
@@ -149,34 +223,67 @@ public class TicketController {
         return ResponseEntity.ok(tickets);
     }
 
-    // preview a ticket
-    @GetMapping("/preview-ticket/{ticketId}")
-    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        return ResponseEntity.ok(ticket);
+    // Filter tickets with pagination
+    @GetMapping("/filter-new")
+    public ResponseEntity<Page<TicketResponse>> filterTicketsWithPagination(
+            @RequestParam(required = false) List<Priority> priority,
+            @RequestParam(required = false) List<Status> status,
+            @RequestParam(required = false) List<Long> assigneeId,
+            @RequestParam(required = false) List<Long> categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "14") int size) {
+
+        Page<TicketResponse> tickets = ticketService.filterTicketsWithPagination(priority, status, assigneeId, categoryId, page, size);
+        return ResponseEntity.ok(tickets);
     }
+
+
+    // preview a ticket
+//    @GetMapping("/preview-ticket/{ticketId}")
+//    public ResponseEntity<Ticket> previewTicket(@PathVariable Long ticketId) {
+//        Ticket ticket = ticketService.getTicketById(ticketId);
+//        return ResponseEntity.ok(ticket);
+//    }
+
+    @GetMapping("/preview-ticket/{ticketId}")
+    public ResponseEntity<TicketDTOs> previewTicket(@PathVariable Long ticketId) {
+        TicketDTOs ticketDTO = ticketService.getTicketByIds(ticketId);
+        return ResponseEntity.ok(ticketDTO);
+    }
+
+    // view all tickets
+    @GetMapping("/view-all-tickets")
+    public List<TicketResponse> viewAllTickets(@RequestParam(defaultValue = "0") int page){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        int size = 14;
+
+        return ticketService.getAllTicket(currentUsername, page, size);
+    }
+
 
     @PostMapping("/{ticketId}/resolve")
-    public ResponseEntity<Ticket> resolveTicket(@PathVariable Long ticketId,
-            @RequestBody TicketResolutionRequest resolutionRequest) {
+    public ResponseEntity<String> resolveTicket(@PathVariable Long ticketId) {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
 
-        Ticket resolvedTicket = ticketService.resolveTicket(ticketId, resolutionRequest);
-        return ResponseEntity.ok(resolvedTicket);
+        // Resolve the ticket using the service
+        ticketService.resolveTicket(ticketId, currentUsername);
+
+        return ResponseEntity.ok("Ticket resolved successfully");
     }
 
-//    //endpoint to get all recent activities
-//    @GetMapping("/all-recent-activities")
-//    public ResponseEntity<Page<TicketActivitiesResponseDto>>listAllRecentTicketActivities(
-//            @RequestParam(value ="id") Long id,
-//            @RequestParam(value ="role") String role,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "7") int size){
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//        //Get the authorities (roles) of the current user
-//        Page<TicketActivitiesResponseDto> recentTickets = ticketService.listAllRecentTicketActivities(id, role, pageable);
-//        return ResponseEntity.ok(recentTickets);
-//    }
+
+    @PostMapping("/{ticketId}/rate")
+    public ResponseEntity<?> rateTicket(@PathVariable Long ticketId,
+                                             @RequestBody TicketRatingRequest ratingRequest) {
+
+        ticketService.rateTicket(ticketId, ratingRequest);
+        return ResponseEntity.ok().build();
+    }
 
     //endpoint to get all recent activities
     @GetMapping("/all-recent-activities")
@@ -207,4 +314,48 @@ public class TicketController {
 
         return ResponseEntity.ok(recentTickets);
     }
+
+    @PutMapping("/assign-ticket/{id}")
+    public ResponseEntity<String> assignTicket(@PathVariable Long id, @RequestBody AssignTicketRequestDto requestDto){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        String response = ticketService.assignTicket(id, requestDto.getAssigneeId(), currentUsername);
+        return ResponseEntity.ok(response);
+    }
+
+    //create endpoint to get ticket by created under
+    // for admin
+    @GetMapping("/get-ticket/created-under/{id}")
+    public ResponseEntity<?> getTicketByCreatedUnder(@PathVariable Long id){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedUnder(currentUsername, id);
+
+        return ResponseEntity.ok(response);
+    }
+
+    //get ticket by created by
+    // for user
+    @GetMapping("/get-ticket/created-by")
+    public ResponseEntity<?> getTicketByCreatedBy(){
+
+        // get the user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        List<GeneralTicketDto> response = ticketService.getTicketByCreatedBy(currentUsername);
+
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
 }

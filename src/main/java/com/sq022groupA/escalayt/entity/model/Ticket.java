@@ -3,10 +3,7 @@ package com.sq022groupA.escalayt.entity.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.sq022groupA.escalayt.entity.enums.Category;
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import jakarta.persistence.*;
@@ -28,9 +25,6 @@ public class Ticket extends BaseClass{
 
     private String location;
 
-//    @Enumerated(EnumType.STRING)
-//    private Category category;
-
     @Enumerated(EnumType.STRING)
     private Priority priority;
 
@@ -38,28 +32,27 @@ public class Ticket extends BaseClass{
 
     private Long createdUnder;
 
-
     @Enumerated(EnumType.STRING)
     private Status status;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "created_by_user_id", foreignKey = @ForeignKey(name = "FK_ticket_created_by_user"))
-    @JsonBackReference
+    @JsonBackReference("createdByUser")
     private User createdByUser;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "resolved_by_user_id", foreignKey = @ForeignKey(name = "FK_ticket_resolved_by_user"))
-    @JsonBackReference
+    @JsonBackReference("resolvedByUser")
     private User resolvedByUser;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "created_by_admin_id", foreignKey = @ForeignKey(name = "FK_ticket_created_by_admin"))
-    @JsonBackReference
+    @JsonBackReference("createdByAdmin")
     private Admin createdByAdmin;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "resolved_by_admin_id", foreignKey = @ForeignKey(name = "FK_ticket_resolved_by_admin"))
-    @JsonBackReference
+    @JsonBackReference("resolvedByAdmin")
     private Admin resolvedByAdmin;
 
 
@@ -68,22 +61,25 @@ public class Ticket extends BaseClass{
     // review for the ticket rating
     private String review;
 
+    // New field for file URL
+    private String fileUrl;
+
+    private String fileTitle;
 
     // map category
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ticket_category_id")
-    @JsonBackReference
+    @JsonBackReference("ticketCategory")
     private TicketCategory ticketCategory;
 
     // mapped ticket comment here
-    @OneToMany(mappedBy = "ticket")
-    @JsonManagedReference
-//    @JsonIgnoreProperties("ticket")
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("ticketComments")
     private List<TicketComment> ticketComments;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "assignee_user_id", foreignKey = @ForeignKey(name = "FK_ticket_assignee_user"))
-    @JsonManagedReference
+    @JsonManagedReference("assignee")
     private User assignee;
 
 

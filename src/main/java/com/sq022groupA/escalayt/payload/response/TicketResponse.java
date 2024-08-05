@@ -1,6 +1,5 @@
 package com.sq022groupA.escalayt.payload.response;
 
-
 import com.sq022groupA.escalayt.entity.enums.Priority;
 import com.sq022groupA.escalayt.entity.enums.Status;
 import lombok.AllArgsConstructor;
@@ -14,15 +13,22 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TicketInfo {
+public class TicketResponse {
 
-    private String title;
-
-    private Long createdUnder;
-
+    private Long id;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String title;
+    private String location;
+    private String priority;
+    private String description;
+    private Long createdUnder;
+    private String status;
+    private int rating;
+    private String review;
+    private Long ticketCategoryId;
+    private String ticketCategoryName;
+    private String assigneeFullName;
 
-    // New field for file URL
-    private String fileUrl;
+
 }
-

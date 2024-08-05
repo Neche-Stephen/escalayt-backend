@@ -6,13 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TicketRequestDto {
-
 
     private String title;
 
@@ -22,9 +22,9 @@ public class TicketRequestDto {
 
     private String description;
 
-    private Status status;
+    // New field for the file
+    private MultipartFile file;
 
-    private Long createdUnder;
-
+    private String fileTitle;
 
 }

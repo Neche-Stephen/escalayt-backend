@@ -10,9 +10,7 @@ import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface TicketService {
@@ -21,7 +19,10 @@ public interface TicketService {
     TicketCommentResponse createTicketComment(TicketCommentRequestDto commentRequestDto, Long ticketId, String commenter);
 
     // get all the comment made under a particular ticket
-    List<TicketComment> getTicketComments(Long ticketId);
+    List<TicketCommentDTO> getTicketComments(Long ticketId);
+
+    // get all the replies
+    List<TicketRepliesDTO> getRepliesForComment(Long commentId);
 
 
 //    TicketCountResponse getAdminTicketCount(Long adminId);
@@ -43,20 +44,59 @@ public interface TicketService {
     TicketResponseDto deleteTicket(Long ticketId);
 
     // Method to get the latest or recent open tickets
-    List<Ticket> getLatestThreeOpenTickets(String userName);
+    List<TicketDto> getLatestThreeOpenTickets(String userName);
+    List<TicketDto> getLatestThreeResolvedTickets(String userName);
+    List<TicketDto> getLatestThreeInprogressTickets(String userName);
+
     // filter ticket
     List<Ticket> filterTickets(Priority priority, Status status, Long assigneeId, Long categoryId);
+    Page<TicketResponse> filterTicketsWithPagination(
+            List<Priority> priority,
+            List<Status> status,
+            List<Long> assigneeIds,
+            List<Long> categoryIds,
+            int page,
+            int size);
 
     Ticket getTicketById(Long ticketId);
 
-    Ticket resolveTicket(Long ticketId, TicketResolutionRequest resolutionRequest);
+    TicketDTOs getTicketByIds(Long ticketId);
+
+    void resolveTicket(Long ticketId, String username);
+
+    void rateTicket(Long ticketId, TicketRatingRequest ratingRequest);
 
     //List all recent ticket activities
     Page<TicketActivitiesResponseDto> listAllRecentTicketActivities(Long id, String role, Pageable pageable);
 
     Admin getAdminId(String username);
+
+
     User getUserId(String username);
 
 
+    // assign a ticket
 
+    String assignTicket(Long ticketId, Long assignId, String username);
+
+
+
+    // get ticket category by name
+    List<CategoryDto> getCategoryName(String username);
+
+    // get all tickets
+    List<TicketResponse> getAllTicket(String username,int page, int size);
+
+
+    // get all tickets by a user
+    List<GeneralTicketDto> getTicketByCreatedBy(String username);
+
+    // get all tickets by created under
+    List<GeneralTicketDto> getTicketByCreatedUnder(String username, Long adminId);
+
+    TicketCommentResponse replyToComment(TicketCommentReply replyDto, Long ticketId, Long commentId, String commenterUsername);
+
+    List<TicketCommentResponse> getCommentReplies(Long commentId, String username);
+
+    List<AssigneeDTO> fetchAssignees(String username);
 }

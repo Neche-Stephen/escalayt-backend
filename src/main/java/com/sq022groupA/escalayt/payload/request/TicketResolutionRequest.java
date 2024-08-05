@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class TicketResolutionRequest {
 
-    private User resolvedByUser;
-    private Admin resolvedByAdmin;
+    private Long ticketId;
 
 }

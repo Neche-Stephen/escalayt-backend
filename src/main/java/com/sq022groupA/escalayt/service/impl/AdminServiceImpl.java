@@ -2,16 +2,15 @@ package com.sq022groupA.escalayt.service.impl;
 
 import com.sq022groupA.escalayt.config.JwtService;
 import com.sq022groupA.escalayt.entity.model.*;
-import com.sq022groupA.escalayt.exception.CustomException;
+import com.sq022groupA.escalayt.exception.*;
 import com.sq022groupA.escalayt.payload.response.*;
 import com.sq022groupA.escalayt.repository.*;
-import com.sq022groupA.escalayt.exception.PasswordsDoNotMatchException;
-import com.sq022groupA.escalayt.exception.UserNotFoundException;
-import com.sq022groupA.escalayt.exception.UsernameAlreadyExistsException;
 import com.sq022groupA.escalayt.payload.request.*;
+import com.sq022groupA.escalayt.service.DepartmentService;
 import com.sq022groupA.escalayt.service.EmailService;
 import com.sq022groupA.escalayt.service.AdminService;
 import com.sq022groupA.escalayt.utils.ForgetPasswordEmailBody;
+import com.sq022groupA.escalayt.utils.UniqueIdGenerator;
 import com.sq022groupA.escalayt.utils.UserRegistrationEmailBody;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +25,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +44,8 @@ public class AdminServiceImpl implements AdminService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+
+    private final DepartmentRepository departmentRepository;
 
 
     @Value("${baseUrl}")
@@ -74,8 +77,14 @@ public class AdminServiceImpl implements AdminService {
         Set<Role> roles = new HashSet<>();
         roles.add(userRole.get());
 
+        // Generate a unique Long ID
+        Long uniqueId;
+        do {
+            uniqueId = UniqueIdGenerator.generateUniqueLongId();
+        } while (adminRepository.existsById(uniqueId));  // Check if Long ID exists in the database
 
         Admin newUser = Admin.builder()
+                .id(uniqueId)  // Set the unique Long ID
                 .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
                 .username(registrationRequest.getUserName())
@@ -272,7 +281,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setTokenCreationDate(LocalDateTime.now());
         adminRepository.save(admin);
 
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetUrl = "http://localhost:5173/reset-password?token=" + token;
 
         // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
@@ -336,6 +345,12 @@ public class AdminServiceImpl implements AdminService {
             throw new RuntimeException("Admin user not found");
         }
 
+        Department currentDepartment = departmentRepository.findById(userRegistrationDto.getDepartmentId()).orElse(null);
+
+        if(currentDepartment == null){
+            throw new DoesNotExistException("Department does not exist");
+        }
+
         // Check if the user email already exists
         Optional<User> existingUser = userRepository.findByEmail(userRegistrationDto.getEmail());
         if (existingUser.isPresent()) {
@@ -360,7 +375,8 @@ public class AdminServiceImpl implements AdminService {
                 .email(userRegistrationDto.getEmail())
                 .phoneNumber(userRegistrationDto.getPhoneNumber())
                 .jobTitle(userRegistrationDto.getJobTitle())
-                .department(userRegistrationDto.getDepartment())
+                //.department(userRegistrationDto.getDepartment())
+                .employeeDepartment(currentDepartment)
                 .username(generatedUsername)
                 .password(passwordEncoder.encode(generatedPassword))
                 .createdUnder(loggedInAdmin.get().getId())
@@ -371,11 +387,11 @@ public class AdminServiceImpl implements AdminService {
         User savedUser = userRepository.save(newUser);
 
         // Set up email message for the registered user/employee
-        String userLoginUrl = baseUrl + "/user-login";
+        String userLoginUrl = baseUrl + "/user/login";
 
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(savedUser.getEmail())
-                .subject("ACTIVATE YOUR ACCOUNT")
+                .subject("ESCALAYT LOGIN DETAILS")
                 .messageBody(UserRegistrationEmailBody.buildEmail(savedUser.getFullName(),
                         savedUser.getUsername(), generatedPassword, userLoginUrl))
                 .build();
@@ -394,10 +410,12 @@ public class AdminServiceImpl implements AdminService {
                 .email(savedUser.getEmail())
                 .phoneNumber(savedUser.getPhoneNumber())
                 .jobTitle(savedUser.getJobTitle())
-                .department(savedUser.getDepartment())
+                //.department(savedUser.getDepartment())
                 .createdUnder(savedUser.getCreatedUnder())
                 .build();
     }
+
+
 
     private static String generateUserName(String fullName) {
         String firstFourLetters = fullName.replaceAll("\\s+", "").substring(0, Math.min(fullName.length(), 4)).toLowerCase();
@@ -413,6 +431,52 @@ public class AdminServiceImpl implements AdminService {
             password.append(chars.charAt(random.nextInt(chars.length())));
         }
         return password.toString();
+    }
+
+
+    // new endpoint to get user detail
+    @Override
+    public AdminUserDetailsDto getAdminDetails(String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if(admin == null){
+            throw new UserNotFoundException("admin not found");
+        }
+        return AdminUserDetailsDto.builder()
+                .id(admin.getId())
+                .fullName(admin.getFirstName() +" "+ admin.getLastName())
+                .username(admin.getUsername())
+                .email(admin.getEmail())
+                .build();
+    }
+
+
+    // get the list of users
+    @Override
+    public List<AdminUserDetailsDto> getAllEmployee(String username) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        List<User> userList = userRepository.findAllByCreatedUnder(admin.getId());
+        if(admin == null){
+            throw new UserNotFoundException("admin not found");
+        }
+
+        List<AdminUserDetailsDto> userDetailsDto = userList.stream()
+                .map(user ->
+                   new AdminUserDetailsDto(
+                           user.getId(),
+                            null,
+                            user.getFullName(),
+                            null,
+                            user.getPictureUrl(),
+                            user.getJobTitle(),
+                           null
+                    ))
+                .collect(Collectors.toList());
+
+        return userDetailsDto;
     }
 
 }
