@@ -521,6 +521,7 @@ public class TickerServiceImpl implements TicketService {
                 .createdByAdmin(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getFirstName() + " " + ticket.getCreatedByAdmin().getLastName() : null)
                 .resolvedByUser(ticket.getResolvedByUser() != null ? ticket.getResolvedByUser().getFullName() : null)
                 .resolvedByAdmin(ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() + " " + ticket.getResolvedByAdmin().getLastName() : null)
+                .resolvedByAdmin(ticket.getAssignedByAdmin() != null ? ticket.getAssignedByAdmin().getFirstName() + " " + ticket.getAssignedByAdmin().getLastName() : null)
                 .createdUnder(ticket.getCreatedUnder())
                 .status(ticket.getStatus())
                 .rating(ticket.getRating())
@@ -735,6 +736,8 @@ public class TickerServiceImpl implements TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
         ticket.setAssignee(userAssigned);
+        ticket.setAssignedByAdmin(admin);
+        ticket.setResolvedByAdmin(null);
         ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setStatus(Status.IN_PROGRESS);
 
