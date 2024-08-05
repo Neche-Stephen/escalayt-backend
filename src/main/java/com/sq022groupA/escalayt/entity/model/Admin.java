@@ -66,6 +66,12 @@ public class Admin implements UserDetails {
     @JsonManagedReference
     private List<Ticket> resolvedTickets;
 
+    @OneToMany(mappedBy = "assignedByAdmin")
+    @JsonManagedReference
+    private List<Ticket> assignedTickets;
+
+
+
     @OneToMany(mappedBy = "createdBy")
     @JsonManagedReference
     @JsonIgnoreProperties("createdBy")
@@ -76,6 +82,8 @@ public class Admin implements UserDetails {
     @JsonManagedReference
     @JsonIgnoreProperties("departmentCreatedBy")
     private List<Department> departmentList;
+
+
 
 
     @ManyToMany(fetch = FetchType.EAGER)
