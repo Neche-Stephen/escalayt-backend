@@ -11,21 +11,21 @@ import java.util.Map;
 @Configuration
 public class CloudinaryConfig {
 
-//    @Value("${CLOUD_NAME}")
-//    private String cloudName;
-//
-//    @Value("${API_KEY}")
-//    private String apiKey;
-//
-//    @Value("${API_SECRET}")
-//    private String apiSecret;
+    @Value("${CLOUD_NAME}")
+    private String cloudName;
+
+    @Value("${API_KEY}")
+    private String apiKey;
+
+    @Value("${API_SECRET}")
+    private String apiSecret;
 
     @Bean
     public Cloudinary cloudinary() {
         Map<String, String> config = new HashMap<>();
-        config.put("cloud_name", "dfco8gsmu");
-        config.put("api_key", "271727554632952");
-        config.put("api_secret", "kLMecTehIIO5lFdNg5PwFNveH90");
+        config.put("cloud_name", cloudName);
+        config.put("api_key", apiKey);
+        config.put("api_secret", apiSecret);
 
         return new Cloudinary(config);
     }
