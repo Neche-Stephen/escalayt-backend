@@ -434,7 +434,31 @@ public class TickerServiceImpl implements TicketService {
                 .fileTitle(ticketRequest.getFileTitle())
                 .build());
 
-        //
+        // Send notification after ticket creation to Admin if ticket is created by user.
+        try {
+            if ( userCreator != null){
+                // Creator is User, get Admin Id and send notification
+                List<Admin> admins = adminRepository.findAll(); // Fetch all admins
+                System.out.println("ADMINS " + admins);
+                if (admins.isEmpty()) {
+                    throw new RuntimeException("No Admins found to notify");
+                }
+                Long adminId = admins.get(0).getId(); // Get the ID of the first Admin (We only have one admin)
+                System.out.println("ADMIN ID " + adminId);
+                NotificationRequest notificationRequest = new NotificationRequest();
+
+                notificationRequest.setTitle("New Ticket Created");
+                notificationRequest.setBody("A new ticket has been created with title: " + ticket.getTitle());
+                notificationRequest.setTopic("Ticket Notifications");
+
+                notificationService.sendNotificationToUser(adminId, notificationRequest);
+            }
+
+            // Long userId = userCreator != null ? userCreator.getId() : adminCreator.getId();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+        }
 
 
 
@@ -743,7 +767,18 @@ public class TickerServiceImpl implements TicketService {
 
         ticketRepository.save(ticket);
 
-        //
+        // Send Notification to assignee
+        try {
+            NotificationRequest notificationRequest = new NotificationRequest();
+            notificationRequest.setTitle("Ticket Assigned");
+            notificationRequest.setBody("A ticket has been assigned to you with title: " + ticket.getTitle());
+            notificationRequest.setTopic("Ticket Notifications");
+
+            notificationService.sendNotificationToUser(userAssigned.getId(), notificationRequest);
+            System.out.println("Notification sent to assignee with ID: " + userAssigned.getId());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+        }
 
         return "Ticket Assign successful";
 
