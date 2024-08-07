@@ -419,6 +419,11 @@ public class TickerServiceImpl implements TicketService {
             }
         }
 
+        String fileTitle = ticketRequest.getFileTitle();
+        if (fileTitle == null) {
+            fileTitle = ""; // or set a default title
+        }
+
 
         Ticket ticket= ticketRepository.save(Ticket.builder()
                 .createdByAdmin(adminCreator)
@@ -431,7 +436,7 @@ public class TickerServiceImpl implements TicketService {
                 .priority(ticketRequest.getPriority())
                 .status(Status.OPEN)
                 .fileUrl(fileUrl)
-                .fileTitle(ticketRequest.getFileTitle())
+                .fileTitle(fileTitle)
                 .build());
 
         // Send notification after ticket creation to Admin if ticket is created by user.

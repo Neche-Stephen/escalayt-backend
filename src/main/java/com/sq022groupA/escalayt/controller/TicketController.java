@@ -153,8 +153,8 @@ public class TicketController {
                                           @RequestParam("location") String location,
                                           @RequestParam("priority") Priority priority,
                                           @RequestParam("description") String description,
-                                          @RequestParam("file") MultipartFile file,
-                                          @RequestParam("fileTitle") String fileTitle){
+                                          @RequestParam(value = "file", required = false) MultipartFile file,
+                                          @RequestParam(value = "fileTitle", required = false) String fileTitle){
 
         // get the user from security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
