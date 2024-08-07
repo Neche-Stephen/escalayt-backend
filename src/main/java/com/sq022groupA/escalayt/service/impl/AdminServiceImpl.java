@@ -448,6 +448,7 @@ public class AdminServiceImpl implements AdminService {
                 .id(admin.getId())
                 .fullName(admin.getFirstName() +" "+ admin.getLastName())
                 .username(admin.getUsername())
+                .phoneNumber(admin.getPhoneNumber())
                 .email(admin.getEmail())
                 .build();
     }
@@ -468,16 +469,74 @@ public class AdminServiceImpl implements AdminService {
                 .map(user ->
                    new AdminUserDetailsDto(
                            user.getId(),
-                            null,
+                            user.getUsername(),
                             user.getFullName(),
-                            null,
+                            user.getEmail(),
                             user.getPictureUrl(),
                             user.getJobTitle(),
-                           null
+                           user.getEmployeeDepartment().getDepartment(),
+                           user.getPhoneNumber()
                     ))
                 .collect(Collectors.toList());
 
         return userDetailsDto;
     }
 
+    @Override
+    public AdminUserDetailsDto editUserDetailsByAdmin( Long departmentId, AdminEditUserRequestDto adminUserDetailsDto) {
+
+        User user = userRepository.findById(adminUserDetailsDto.getId()).orElse(null);
+        Department department = departmentRepository.findById(departmentId).orElse(null);
+
+        if(user == null){
+            throw new UserNotFoundException("user not found for real");
+        }
+        if(department == null){
+            throw new DoesNotExistException("Department does not exist");
+        }
+
+        user.setEmail(adminUserDetailsDto.getEmail());
+        user.setUsername(adminUserDetailsDto.getUsername());
+        user.setJobTitle(adminUserDetailsDto.getJobTitle());
+        user.setEmployeeDepartment(department);
+        user.setPassword(passwordEncoder.encode(adminUserDetailsDto.getPassword()));
+
+        User updatedUser = userRepository.save(user);
+
+        return AdminUserDetailsDto.builder()
+                .username(updatedUser.getUsername())
+                .build();
+    }
+
+    @Override
+    public AdminUserDetailsDto editAdminDetails(String username, AdminDetailsRequestDto requestDto) {
+
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if(admin == null){
+            throw new UserNotFoundException("Admin not found");
+        }
+
+
+        admin.setFirstName(requestDto.getFirstName());
+        admin.setLastName(requestDto.getLastName());
+        admin.setEmail(requestDto.getEmail());
+        admin.setPhoneNumber(requestDto.getPhoneNumber());
+        admin.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+
+        Admin newAdmin = adminRepository.save(admin);
+
+        return AdminUserDetailsDto.builder()
+                .fullName(newAdmin.getFirstName()+" "+newAdmin.getLastName())
+                .build();
+    }
+
 }
+/*
+ employeeId: employeeId,
+      email: emailRef.current.value,
+      username: usernameRef.current.value,
+      jobTitle: jobTitleRef.current.value,
+      departmentId: departmentId,
+      password: passwordRef.current.value,
+ */

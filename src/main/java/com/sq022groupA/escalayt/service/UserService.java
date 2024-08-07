@@ -20,4 +20,6 @@ public interface UserService {
 
     AdminUserDetailsDto getUserDetails(String username);
 
+    AdminUserDetailsDto editUserInfo(String username, AdminUserDetailsDto adminUserDetailsDto);
+
 }

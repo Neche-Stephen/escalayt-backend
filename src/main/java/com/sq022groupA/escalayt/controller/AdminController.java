@@ -4,9 +4,7 @@ import com.sq022groupA.escalayt.entity.model.Admin;
 import com.sq022groupA.escalayt.entity.model.Department;
 import com.sq022groupA.escalayt.entity.model.User;
 import com.sq022groupA.escalayt.exception.ErrorResponse;
-import com.sq022groupA.escalayt.payload.request.DepartmentRequestDto;
-import com.sq022groupA.escalayt.payload.request.UserDetailsDto;
-import com.sq022groupA.escalayt.payload.request.UserRegistrationDto;
+import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.AdminUserDetailsDto;
 import com.sq022groupA.escalayt.payload.response.UserRegistrationResponse;
 import com.sq022groupA.escalayt.service.AdminService;
@@ -126,5 +124,21 @@ public class AdminController {
         String username = authentication.getName();
 
         return ResponseEntity.ok(adminService.getAllEmployee(username));
+    }
+
+    // edit user endpoint by admin on admin dashboard
+    @PutMapping("/update-employee-details/{id}")
+    public ResponseEntity<?> updateEmployeeDetailByAdmin(@PathVariable Long id, @RequestBody AdminEditUserRequestDto requestDto){
+
+        return ResponseEntity.ok(adminService.editUserDetailsByAdmin(id, requestDto));
+    }
+
+    @PutMapping("/update-admin-details")
+    public ResponseEntity<?> updateAdminDetail( @RequestBody AdminDetailsRequestDto requestDto){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        return ResponseEntity.ok(adminService.editAdminDetails(username, requestDto));
     }
 }

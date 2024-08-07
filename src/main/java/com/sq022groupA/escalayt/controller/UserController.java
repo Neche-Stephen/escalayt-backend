@@ -37,4 +37,17 @@ public class UserController {
 
     }
 
+    // edit user detail here
+    @PutMapping("/edit-user-detail")
+    public ResponseEntity<AdminUserDetailsDto> editUserDetails(@RequestBody AdminUserDetailsDto adminUserDetailsDto){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+
+
+        return ResponseEntity.ok(userService.editUserInfo(currentUsername, adminUserDetailsDto));
+
+    }
+
 }

@@ -35,4 +35,9 @@ public interface AdminService {
     List<AdminUserDetailsDto> getAllEmployee(String username);
 
 
+    AdminUserDetailsDto editUserDetailsByAdmin(Long departmentId, AdminEditUserRequestDto requestDto);
+
+    AdminUserDetailsDto editAdminDetails(String username, AdminDetailsRequestDto requestDto);
+
+
 }
