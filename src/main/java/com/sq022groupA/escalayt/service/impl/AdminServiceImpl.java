@@ -103,7 +103,8 @@ public class AdminServiceImpl implements AdminService {
 //        String confirmationUrl = EmailTemplate.getVerificationUrl(baseUrl, confirmationToken.getToken());
 
 //        String confirmationUrl = baseUrl + "/confirmation/confirm-token-sucess.html?token=" + confirmationToken.getToken();
-        String confirmationUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + confirmationToken.getToken();
+        //String confirmationUrl = "http://localhost:8080/api/v1/auth/confirm?token=" + confirmationToken.getToken();
+        String confirmationUrl = "http://localhost:5173/confirm-email?token=" + confirmationToken.getToken();
 
 //        send email alert
         EmailDetails emailDetails = EmailDetails.builder()
