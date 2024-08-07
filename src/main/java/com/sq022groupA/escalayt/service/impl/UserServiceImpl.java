@@ -173,9 +173,39 @@ public class UserServiceImpl implements UserService {
                 .fullName(user.getFullName())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .department(user.getEmployeeDepartment().getDepartment())
+                .jobTitle(user.getJobTitle())
+                .phoneNumber(user.getPhoneNumber())
                 .build();
     }
+
+
+    // edit user details
+    @Override
+    public AdminUserDetailsDto editUserInfo(String username, AdminUserDetailsDto adminUserDetailsDto) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+
+        if(user == null){
+            throw new UserNotFoundException("user does not exist!");
+        }
+
+        user.setEmail(adminUserDetailsDto.getEmail());
+        user.setPhoneNumber(adminUserDetailsDto.getPhoneNumber());
+        user.setFullName(adminUserDetailsDto.getFullName());
+        //user.setUsername(adminUserDetailsDto.getUsername());
+
+        User newUser = userRepository.save(user);
+
+        return AdminUserDetailsDto.builder()
+                .fullName(newUser.getFullName())
+                .phoneNumber(newUser.getPhoneNumber())
+                .pictureUrl(newUser.getPictureUrl())
+                .email(newUser.getEmail())
+                .build();
+
     }
+}
 
 
 

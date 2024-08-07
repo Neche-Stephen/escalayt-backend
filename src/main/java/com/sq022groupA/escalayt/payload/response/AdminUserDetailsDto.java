@@ -26,4 +26,6 @@ public class AdminUserDetailsDto {
 
    private String department;
 
+   private String phoneNumber;
+
 }
