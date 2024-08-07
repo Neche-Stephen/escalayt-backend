@@ -7,6 +7,7 @@ import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.exception.DoesNotExistException;
 import com.sq022groupA.escalayt.exception.TicketNotFoundException;
+import com.sq022groupA.escalayt.exception.UnauthorizedException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -545,7 +547,7 @@ public class TickerServiceImpl implements TicketService {
                 .createdByAdmin(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getFirstName() + " " + ticket.getCreatedByAdmin().getLastName() : null)
                 .resolvedByUser(ticket.getResolvedByUser() != null ? ticket.getResolvedByUser().getFullName() : null)
                 .resolvedByAdmin(ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() + " " + ticket.getResolvedByAdmin().getLastName() : null)
-                .resolvedByAdmin(ticket.getAssignedByAdmin() != null ? ticket.getAssignedByAdmin().getFirstName() + " " + ticket.getAssignedByAdmin().getLastName() : null)
+                .assignedByAdmin(ticket.getAssignedByAdmin() != null ? ticket.getAssignedByAdmin().getFirstName() + " " + ticket.getAssignedByAdmin().getLastName() : null)
                 .createdUnder(ticket.getCreatedUnder())
                 .status(ticket.getStatus())
                 .rating(ticket.getRating())
@@ -915,6 +917,65 @@ public class TickerServiceImpl implements TicketService {
         return generalTicketDto;
     }
 
+    // DELETE MULTIPLE TICKETS
+    @Transactional
+    @Override
+    public void deleteTickets(List<Long> ticketIds, String username) {
+        // Determine if the user is an admin or a regular user
+        User userCreator = userRepository.findByUsername(username).orElse(null);
+        Admin adminCreator = adminRepository.findByUsername(username).orElse(null);
+
+        if (userCreator == null && adminCreator == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        for (Long ticketId : ticketIds) {
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new DoesNotExistException("Ticket does not exist"));
+
+            // If the user is not an admin, perform additional checks
+            if (adminCreator == null) {
+                // Check if the current user created the ticket
+                if (ticket.getCreatedByUser() == null || !ticket.getCreatedByUser().getId().equals(userCreator.getId())) {
+                    throw new UnauthorizedException("You are not authorized to delete this ticket");
+                }
+                // Check if the ticket has been resolved
+                if (!Status.RESOLVE.equals(ticket.getStatus())) {
+                    throw new UnauthorizedException("You cannot delete a ticket that has not been resolved");
+                }
+            }
+
+            ticketRepository.delete(ticket);
+        }
+    }
+
+    // RESOLVE MULTIPLE TICKETS
+    @Transactional
+    @Override
+    public void resolveTickets(List<Long> ticketIds, String username) {
+        // Get the user or admin based on the username
+        User user = userRepository.findByUsername(username).orElse(null);
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (admin == null && user == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        for (Long ticketId : ticketIds) {
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+            if (admin != null) {
+                ticket.setResolvedByAdmin(admin);
+            } else if (user != null) {
+                ticket.setResolvedByUser(user);
+            }
+
+            ticket.setStatus(Status.RESOLVE);
+            ticket.setUpdatedAt(LocalDateTime.now());
+            ticketRepository.save(ticket);
+        }
+    }
 
 
 }
