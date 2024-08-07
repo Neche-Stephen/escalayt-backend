@@ -557,7 +557,7 @@ public class TickerServiceImpl implements TicketService {
                 .status(ticket.getStatus())
                 .rating(ticket.getRating())
                 .review(ticket.getReview())
-                .ticketComments(ticket.getTicketComments())
+//                .ticketComments(ticket.getTicketComments())
                 .assignee(ticket.getAssignee() != null ? ticket.getAssignee().getFullName() : null)
                 .build();
     }
