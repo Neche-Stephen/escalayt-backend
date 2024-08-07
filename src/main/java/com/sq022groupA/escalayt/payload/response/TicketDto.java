@@ -27,6 +27,7 @@ public class TicketDto {
     private String createdByAdmin;
     private String resolvedByUser;
     private String resolvedByAdmin;
+    private String assignedByAdmin;
     private Long createdUnder;
     private Status status;
     private int rating;

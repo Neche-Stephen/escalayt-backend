@@ -6,5 +6,5 @@ public enum Status {
 
     IN_PROGRESS,
 
-    RESOLVE
+    RESOLVED
 }

@@ -153,8 +153,8 @@ public class TicketController {
                                           @RequestParam("location") String location,
                                           @RequestParam("priority") Priority priority,
                                           @RequestParam("description") String description,
-                                          @RequestParam("file") MultipartFile file,
-                                          @RequestParam("fileTitle") String fileTitle){
+                                          @RequestParam(value = "file", required = false) MultipartFile file,
+                                          @RequestParam(value = "fileTitle", required = false) String fileTitle){
 
         // get the user from security context
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -354,6 +354,32 @@ public class TicketController {
 
         return ResponseEntity.ok(response);
     }
+
+    // DELETE MULTIPLE TICKETS
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteTickets(@RequestBody List<Long> ticketIds) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        // Delete the tickets using the service
+        ticketService.deleteTickets(ticketIds, username);
+
+        return ResponseEntity.ok("Tickets deleted successfully");
+    }
+
+    // RESOLVE MULTIPLE TICKETS
+    @PostMapping("/resolve")
+    public ResponseEntity<String> resolveTickets(@RequestBody List<Long> ticketIds) {
+        // Get the currently authenticated user from the security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        // Resolve the tickets using the service
+        ticketService.resolveTickets(ticketIds, currentUsername);
+
+        return ResponseEntity.ok("Tickets resolved successfully");
+    }
+
 
 
 

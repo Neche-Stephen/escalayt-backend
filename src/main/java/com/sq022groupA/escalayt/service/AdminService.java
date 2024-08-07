@@ -38,4 +38,6 @@ public interface AdminService {
     AdminUserDetailsDto editUserDetailsByAdmin(Long departmentId, AdminEditUserRequestDto requestDto);
 
     AdminUserDetailsDto editAdminDetails(String username, AdminDetailsRequestDto requestDto);
+
+
 }

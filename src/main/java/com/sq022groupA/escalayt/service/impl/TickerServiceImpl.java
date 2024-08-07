@@ -7,6 +7,7 @@ import com.sq022groupA.escalayt.entity.enums.Status;
 import com.sq022groupA.escalayt.entity.model.*;
 import com.sq022groupA.escalayt.exception.DoesNotExistException;
 import com.sq022groupA.escalayt.exception.TicketNotFoundException;
+import com.sq022groupA.escalayt.exception.UnauthorizedException;
 import com.sq022groupA.escalayt.exception.UserNotFoundException;
 import com.sq022groupA.escalayt.payload.request.*;
 import com.sq022groupA.escalayt.payload.response.*;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -251,7 +253,7 @@ public class TickerServiceImpl implements TicketService {
         Long totalTickets = ticketRepository.countTotalTicketsByAdminId(adminId);
         Long openTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.OPEN);
         Long inProgressTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVE);
+        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVED);
 
 
         return TicketCountResponse.builder()
@@ -266,7 +268,7 @@ public class TickerServiceImpl implements TicketService {
         Long totalTickets = ticketRepository.countTotalTicketsByUserId(userId);
         Long openTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.OPEN);
         Long inProgressTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.RESOLVE);
+        Long resolvedTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.RESOLVED);
 
         return TicketCountResponse.builder()
                 .totalTickets(totalTickets)
@@ -419,6 +421,11 @@ public class TickerServiceImpl implements TicketService {
             }
         }
 
+        String fileTitle = ticketRequest.getFileTitle();
+        if (fileTitle == null) {
+            fileTitle = ""; // or set a default title
+        }
+
 
         Ticket ticket= ticketRepository.save(Ticket.builder()
                 .createdByAdmin(adminCreator)
@@ -431,10 +438,34 @@ public class TickerServiceImpl implements TicketService {
                 .priority(ticketRequest.getPriority())
                 .status(Status.OPEN)
                 .fileUrl(fileUrl)
-                .fileTitle(ticketRequest.getFileTitle())
+                .fileTitle(fileTitle)
                 .build());
 
-        //
+        // Send notification after ticket creation to Admin if ticket is created by user.
+        try {
+            if ( userCreator != null){
+                // Creator is User, get Admin Id and send notification
+                List<Admin> admins = adminRepository.findAll(); // Fetch all admins
+                System.out.println("ADMINS " + admins);
+                if (admins.isEmpty()) {
+                    throw new RuntimeException("No Admins found to notify");
+                }
+                Long adminId = admins.get(0).getId(); // Get the ID of the first Admin (We only have one admin)
+                System.out.println("ADMIN ID " + adminId);
+                NotificationRequest notificationRequest = new NotificationRequest();
+
+                notificationRequest.setTitle("New Ticket Created");
+                notificationRequest.setBody("A new ticket has been created with title: " + ticket.getTitle());
+                notificationRequest.setTopic("Ticket Notifications");
+
+                notificationService.sendNotificationToUser(adminId, notificationRequest);
+            }
+
+            // Long userId = userCreator != null ? userCreator.getId() : adminCreator.getId();
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+        }
 
 
 
@@ -490,7 +521,7 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
 
-        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVE, admin.getId());
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVED, admin.getId());
 
         return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
@@ -521,6 +552,7 @@ public class TickerServiceImpl implements TicketService {
                 .createdByAdmin(ticket.getCreatedByAdmin() != null ? ticket.getCreatedByAdmin().getFirstName() + " " + ticket.getCreatedByAdmin().getLastName() : null)
                 .resolvedByUser(ticket.getResolvedByUser() != null ? ticket.getResolvedByUser().getFullName() : null)
                 .resolvedByAdmin(ticket.getResolvedByAdmin() != null ? ticket.getResolvedByAdmin().getFirstName() + " " + ticket.getResolvedByAdmin().getLastName() : null)
+                .assignedByAdmin(ticket.getAssignedByAdmin() != null ? ticket.getAssignedByAdmin().getFirstName() + " " + ticket.getAssignedByAdmin().getLastName() : null)
                 .createdUnder(ticket.getCreatedUnder())
                 .status(ticket.getStatus())
                 .rating(ticket.getRating())
@@ -642,7 +674,7 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("User not found");
         }
 
-        ticket.setStatus(Status.RESOLVE);
+        ticket.setStatus(Status.RESOLVED);
         ticket.setUpdatedAt(LocalDateTime.now());
 
         ticketRepository.save(ticket);
@@ -735,12 +767,25 @@ public class TickerServiceImpl implements TicketService {
                 .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
 
         ticket.setAssignee(userAssigned);
+        ticket.setAssignedByAdmin(admin);
+        ticket.setResolvedByAdmin(null);
         ticket.setUpdatedAt(LocalDateTime.now());
         ticket.setStatus(Status.IN_PROGRESS);
 
         ticketRepository.save(ticket);
 
-        //
+        // Send Notification to assignee
+        try {
+            NotificationRequest notificationRequest = new NotificationRequest();
+            notificationRequest.setTitle("Ticket Assigned");
+            notificationRequest.setBody("A ticket has been assigned to you with title: " + ticket.getTitle());
+            notificationRequest.setTopic("Ticket Notifications");
+
+            notificationService.sendNotificationToUser(userAssigned.getId(), notificationRequest);
+            System.out.println("Notification sent to assignee with ID: " + userAssigned.getId());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace(); // Handle the exception appropriately
+        }
 
         return "Ticket Assign successful";
 
@@ -877,6 +922,65 @@ public class TickerServiceImpl implements TicketService {
         return generalTicketDto;
     }
 
+    // DELETE MULTIPLE TICKETS
+    @Transactional
+    @Override
+    public void deleteTickets(List<Long> ticketIds, String username) {
+        // Determine if the user is an admin or a regular user
+        User userCreator = userRepository.findByUsername(username).orElse(null);
+        Admin adminCreator = adminRepository.findByUsername(username).orElse(null);
+
+        if (userCreator == null && adminCreator == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        for (Long ticketId : ticketIds) {
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new DoesNotExistException("Ticket does not exist"));
+
+            // If the user is not an admin, perform additional checks
+            if (adminCreator == null) {
+                // Check if the current user created the ticket
+                if (ticket.getCreatedByUser() == null || !ticket.getCreatedByUser().getId().equals(userCreator.getId())) {
+                    throw new UnauthorizedException("You are not authorized to delete this ticket");
+                }
+                // Check if the ticket has been resolved
+                if (!Status.RESOLVED.equals(ticket.getStatus())) {
+                    throw new UnauthorizedException("You cannot delete a ticket that has not been resolved");
+                }
+            }
+
+            ticketRepository.delete(ticket);
+        }
+    }
+
+    // RESOLVE MULTIPLE TICKETS
+    @Transactional
+    @Override
+    public void resolveTickets(List<Long> ticketIds, String username) {
+        // Get the user or admin based on the username
+        User user = userRepository.findByUsername(username).orElse(null);
+        Admin admin = adminRepository.findByUsername(username).orElse(null);
+
+        if (admin == null && user == null) {
+            throw new UserNotFoundException("User not found");
+        }
+
+        for (Long ticketId : ticketIds) {
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+
+            if (admin != null) {
+                ticket.setResolvedByAdmin(admin);
+            } else if (user != null) {
+                ticket.setResolvedByUser(user);
+            }
+
+            ticket.setStatus(Status.RESOLVED);
+            ticket.setUpdatedAt(LocalDateTime.now());
+            ticketRepository.save(ticket);
+        }
+    }
 
 
 }

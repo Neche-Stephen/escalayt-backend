@@ -99,4 +99,12 @@ public interface TicketService {
     List<TicketCommentResponse> getCommentReplies(Long commentId, String username);
 
     List<AssigneeDTO> fetchAssignees(String username);
+
+    // DELETE MULTIPLE TICKETS
+    void deleteTickets(List<Long> ticketIds, String username);
+
+    // RESOLVE MULTIPLE TICKETS
+    void resolveTickets(List<Long> ticketIds, String username);
+
+
 }

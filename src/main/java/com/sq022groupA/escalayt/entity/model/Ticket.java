@@ -55,6 +55,11 @@ public class Ticket extends BaseClass{
     @JsonBackReference("resolvedByAdmin")
     private Admin resolvedByAdmin;
 
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "assigned_by_admin_id", foreignKey = @ForeignKey(name = "FK_ticket_assigned_by_admin"))
+    @JsonBackReference("assignedByAdmin")
+    private Admin assignedByAdmin;
+
 
     private int rating;
 
