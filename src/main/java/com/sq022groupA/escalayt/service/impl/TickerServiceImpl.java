@@ -253,7 +253,7 @@ public class TickerServiceImpl implements TicketService {
         Long totalTickets = ticketRepository.countTotalTicketsByAdminId(adminId);
         Long openTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.OPEN);
         Long inProgressTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVE);
+        Long resolvedTickets = ticketRepository.countAllTicketsUnderAdminAndStatus(adminId, Status.RESOLVED);
 
 
         return TicketCountResponse.builder()
@@ -268,7 +268,7 @@ public class TickerServiceImpl implements TicketService {
         Long totalTickets = ticketRepository.countTotalTicketsByUserId(userId);
         Long openTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.OPEN);
         Long inProgressTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.IN_PROGRESS);
-        Long resolvedTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.RESOLVE);
+        Long resolvedTickets = ticketRepository.countTicketsByUserIdAndStatus(userId, Status.RESOLVED);
 
         return TicketCountResponse.builder()
                 .totalTickets(totalTickets)
@@ -521,7 +521,7 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("You do not have proper authorization to make this action");
         }
 
-        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVE, admin.getId());
+        List<Ticket> openTickets = ticketRepository.findTop3ByStatusAndCreatedUnderOrderByCreatedAtDesc(Status.RESOLVED, admin.getId());
 
         return openTickets.stream().map(this::mapToDto).collect(Collectors.toList());
     }
@@ -674,7 +674,7 @@ public class TickerServiceImpl implements TicketService {
             throw new UserNotFoundException("User not found");
         }
 
-        ticket.setStatus(Status.RESOLVE);
+        ticket.setStatus(Status.RESOLVED);
         ticket.setUpdatedAt(LocalDateTime.now());
 
         ticketRepository.save(ticket);
@@ -945,7 +945,7 @@ public class TickerServiceImpl implements TicketService {
                     throw new UnauthorizedException("You are not authorized to delete this ticket");
                 }
                 // Check if the ticket has been resolved
-                if (!Status.RESOLVE.equals(ticket.getStatus())) {
+                if (!Status.RESOLVED.equals(ticket.getStatus())) {
                     throw new UnauthorizedException("You cannot delete a ticket that has not been resolved");
                 }
             }
@@ -976,7 +976,7 @@ public class TickerServiceImpl implements TicketService {
                 ticket.setResolvedByUser(user);
             }
 
-            ticket.setStatus(Status.RESOLVE);
+            ticket.setStatus(Status.RESOLVED);
             ticket.setUpdatedAt(LocalDateTime.now());
             ticketRepository.save(ticket);
         }
