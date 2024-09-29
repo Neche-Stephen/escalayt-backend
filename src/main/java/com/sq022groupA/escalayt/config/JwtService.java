@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class JwtService {
     private static String SECRET_KEY;
 
-    @Value("${ifarmer.jwt.secret}")
+    @Value("${escalayt.jwt.secret}")
     public void setSecretKey(String secretKey) {
         SECRET_KEY = secretKey;
     }
